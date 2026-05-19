@@ -1,0 +1,9 @@
+# Dependency directories
+node_modules/
+
+# Environment variables (CRITICAL)
+.env
+
+# Optional: Ignore log files if your app crashes
+npm-debug.log*
+yarn-error.log*

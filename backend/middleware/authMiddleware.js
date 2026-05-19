@@ -1,32 +1,26 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const auth = (req, res, next) => {
-	try {
-		// Extract token from Authorization header or cookie
-		let token;
-		const authHeader = req.headers.authorization;
-		
-		if (authHeader && authHeader.startsWith('Bearer ')) {
-			token = authHeader.substring(7); // Remove 'Bearer ' prefix
-		} else if (req.cookies && req.cookies.token) {
-			token = req.cookies.token;
-		}
-		
-		if (!token) {
-			return res.status(401).json({ message: 'Authorization header or cookie missing.' });
-		}
+const auth = async (req, res, next) => {
+  let token;
 
-		const decoded = jwt.verify(token, process.env.JWT_SECRET);
-		
-		// Attach decoded user data to request object
-		req.user = decoded;
-		next();
-	} catch (error) {
-		if (error.name === 'TokenExpiredError') {
-			return res.status(401).json({ message: 'Token expired. Please log in again.' });
-		}
-		return res.status(401).json({ message: 'Invalid token.' });
-	}
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      req.user = await User.findById(decoded.id);
+      next();
+    } catch (error) {
+      return res.status(401).json({ message: "Not authorized, token failed." });
+    }
+  }
+
+  if (!token) {
+    return res.status(401).json({ message: "Not authorized, no token." });
+  }
 };
 
 module.exports = auth;
