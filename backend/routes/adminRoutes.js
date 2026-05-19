@@ -1,11 +1,11 @@
 const express = require('express');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
+const auth = require('../middleware/authMiddleware');
+const admin = require('../middleware/adminMiddleware');
 
-const modulesCtrl = require('../controllers/modulesController');
-const quizzesCtrl = require('../controllers/quizzesController');
+const modulesCtrl = require('../controllers/moduleController');
+const quizzesCtrl = require('../controllers/quizController');
 const progressCtrl = require('../controllers/progressController');
-const usersCtrl = require('../controllers/usersController');
+const usersCtrl = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -20,7 +20,7 @@ router.delete('/modules/:id', auth, admin, modulesCtrl.deleteModule);
 router.get('/quizzes', auth, admin, quizzesCtrl.listQuizzes);
 router.get('/quizzes/:id', auth, admin, quizzesCtrl.getQuiz);
 router.post('/quizzes', auth, admin, quizzesCtrl.createQuiz);
-router.put('/quizzes/:id', auth, admin, quizzesCtrl.updateQuiz);
+router.patch('/quizzes/:id', auth, admin, quizzesCtrl.updateQuiz);
 router.delete('/quizzes/:id', auth, admin, quizzesCtrl.deleteQuiz);
 
 // Admin progress routes

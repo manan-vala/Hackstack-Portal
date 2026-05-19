@@ -39,9 +39,18 @@ exports.updateProgress = async (req, res) => {
   }
 
   try {
-    const progress = await Progress.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    // Fetch the progress record first to verify ownership
+    const progress = await Progress.findById(req.params.id);
     if (!progress) return res.status(404).json({ message: 'Progress record not found.' });
-    res.json(progress);
+
+    // Enforce ownership: users can only update their own progress
+    if (progress.userId.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Access denied. You can only update your own progress.' });
+    }
+
+    // Update progress record
+    const updatedProgress = await Progress.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    res.json(updatedProgress);
   } catch (error) {
     res.status(400).json({ message: 'Failed to update progress record.', error: error.message });
   }

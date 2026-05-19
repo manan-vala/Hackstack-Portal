@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
-const modulesCtrl = require('../controllers/modulesController');
+const auth = require('../middleware/authMiddleware');
+const admin = require('../middleware/adminMiddleware');
+const modulesCtrl = require('../controllers/moduleController');
 
 const router = express.Router();
 
