@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HACKSTACK – Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-deep: #0a0f1a;
+    --bg-mid: #0d1b2e;
+    --star-color: #4dd9ff;
+    --cloud-color: #0f2a4a;
+    --card-bg: #f4f6fb;
+    --card-border: #c8d4e8;
+    --accent: #00c2ff;
+    --accent-dark: #0090cc;
+    --text-dark: #1a2340;
+    --text-muted: #6b7a99;
+    --btn-google-bg: #fff;
+    --btn-github-bg: #fff;
+    --input-border: #c8d4e8;
+    --input-focus: #00c2ff;
+    --pixel: 'Press Start 2P', monospace;
+    --vt: 'VT323', monospace;
+  }
+
+  body {
+    min-height: 100vh;
+    background: var(--bg-deep);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--pixel);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ── Starry background ── */
+  canvas#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ── Pixel clouds ── */
+  .clouds {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    height: 220px;
+    z-index: 1;
+    pointer-events: none;
+  }
+  .cloud {
+    position: absolute;
+    background: var(--cloud-color);
+    border-radius: 0;
+    image-rendering: pixelated;
+  }
+  /* Big cloud left */
+  .cloud-1 { width: 340px; height: 90px; bottom: 0; left: -30px; }
+  .cloud-1::before { content:''; position:absolute; width:200px; height:60px; background:inherit; top:-40px; left:40px; }
+  .cloud-1::after  { content:''; position:absolute; width:120px; height:40px; background:inherit; top:-60px; left:90px; }
+  /* Big cloud right */
+  .cloud-2 { width: 380px; height: 90px; bottom: 0; right: -40px; }
+  .cloud-2::before { content:''; position:absolute; width:200px; height:60px; background:inherit; top:-40px; right:30px; }
+  .cloud-2::after  { content:''; position:absolute; width:130px; height:40px; background:inherit; top:-65px; right:75px; }
+  /* Small cloud center */
+  .cloud-3 { width: 180px; height: 60px; bottom: 0; left: 50%; transform:translateX(-50%); }
+  .cloud-3::before { content:''; position:absolute; width:110px; height:40px; background:inherit; top:-28px; left:30px; }
+
+  /* ── Mascot + speech bubble ── */
+  .mascot-wrap {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 18px;
+    animation: floatY 3s ease-in-out infinite;
+  }
+  @keyframes floatY {
+    0%,100% { transform: translateY(0); }
+    50%      { transform: translateY(-8px); }
+  }
+  .mascot {
+    width: 72px;
+    height: 72px;
+    image-rendering: pixelated;
+    flex-shrink: 0;
+  }
+  .speech-bubble {
+    background: #fff;
+    border: 2px solid #c8d4e8;
+    border-radius: 4px;
+    padding: 12px 16px;
+    font-family: var(--vt);
+    font-size: 1.35rem;
+    color: var(--text-dark);
+    line-height: 1.4;
+    max-width: 220px;
+    position: relative;
+    box-shadow: 3px 3px 0 #c8d4e8;
+  }
+  .speech-bubble::before {
+    content: '';
+    position: absolute;
+    left: -14px; top: 18px;
+    border: 7px solid transparent;
+    border-right-color: #c8d4e8;
+  }
+  .speech-bubble::after {
+    content: '';
+    position: absolute;
+    left: -11px; top: 19px;
+    border: 6px solid transparent;
+    border-right-color: #fff;
+  }
+
+  /* ── Card ── */
+  .card {
+    position: relative;
+    z-index: 10;
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 6px;
+    padding: 36px 40px 32px;
+    width: 420px;
+    box-shadow: 6px 6px 0 #b0bdd4, 0 0 40px rgba(0,194,255,0.08);
+    animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(20px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+
+  /* ── ASCII logo ── */
+  .ascii-logo {
+    position: relative;
+    z-index: 10;
+    margin-bottom: 20px;
+    text-align: center;
+  }
+  .ascii-logo pre {
+    font-family: 'Courier New', monospace;
+    font-size: clamp(4px, 1vw, 7.5px);
+    line-height: 1.2;
+    color: var(--accent);
+    text-shadow: 0 0 8px rgba(0,194,255,0.6), 0 0 20px rgba(0,194,255,0.3);
+    letter-spacing: 0;
+    white-space: pre;
+    display: inline-block;
+  }
+
+  /* GitHub button */
+  .github-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #1a2340;
+    border: 2px solid #2e3f66;
+    border-radius: 4px;
+    padding: 16px 20px;
+    font-family: var(--pixel);
+    font-size: 0.6rem;
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 #0d1525, 0 0 16px rgba(0,194,255,0.1);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
+    letter-spacing: 1px;
+    margin-bottom: 20px;
+  }
+  .github-btn:hover {
+    background: #1e2d4d;
+    transform: translate(-1px,-1px);
+    box-shadow: 5px 5px 0 #0d1525, 0 0 20px rgba(0,194,255,0.2);
+  }
+  .github-btn:active {
+    transform: translate(3px,3px);
+    box-shadow: 1px 1px 0 #0d1525;
+  }
+  .github-btn svg { width: 20px; height: 20px; flex-shrink: 0; fill: #fff; }
+
+  /* Footer text */
+  .card-footer {
+    text-align: center;
+    font-family: var(--vt);
+    font-size: 1rem;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+  .card-footer .lock { font-size: 1.1rem; }
+
+  /* ── Pixel sparkles ── */
+  .sparkle {
+    position: fixed;
+    width: 8px; height: 8px;
+    background: var(--star-color);
+    z-index: 2;
+    animation: sparkleAnim 4s ease-in-out infinite;
+  }
+  @keyframes sparkleAnim {
+    0%,100% { opacity:0.3; transform:scale(1) rotate(0deg); }
+    50%      { opacity:1;   transform:scale(1.4) rotate(45deg); }
+  }
+
+  /* cross shape via clip */
+  .sparkle::before, .sparkle::after {
+    content: '';
+    position: absolute;
+    background: var(--star-color);
+  }
+  .sparkle::before { width:2px; height:16px; top:-4px; left:3px; }
+  .sparkle::after  { width:16px; height:2px; top:3px; left:-4px; }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+
+<!-- Pixel sparkles placed around -->
+<div class="sparkle" style="top:12%;left:9%;animation-delay:0s"></div>
+<div class="sparkle" style="top:20%;right:10%;animation-delay:1.2s"></div>
+<div class="sparkle" style="top:55%;right:6%;animation-delay:0.6s"></div>
+<div class="sparkle" style="top:35%;left:5%;animation-delay:2s"></div>
+
+<!-- Clouds -->
+<div class="clouds">
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+</div>
+
+<!-- ASCII Logo -->
+<div class="ascii-logo">
+<pre>
+██╗  ██╗ █████╗  ██████╗██╗  ██╗███████╗████████╗ █████╗  ██████╗██╗  ██╗
+██║  ██║██╔══██╗██╔════╝██║ ██╔╝██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
+███████║███████║██║     █████╔╝ ███████╗   ██║   ███████║██║     █████╔╝ 
+██╔══██║██╔══██║██║     ██╔═██╗ ╚════██║   ██║   ██╔══██║██║     ██╔═██╗ 
+██║  ██║██║  ██║╚██████╗██║  ██╗███████║   ██║   ██║  ██║╚██████╗██║  ██╗
+╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+</pre>
+</div>
+
+<!-- Mascot + bubble -->
+<div class="mascot-wrap">
+  <svg class="mascot" viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="image-rendering:pixelated">
+    <rect x="8" y="8" width="48" height="36" rx="3" fill="#d0d8e8"/>
+    <rect x="10" y="10" width="44" height="32" rx="2" fill="#1a2a4a"/>
+    <rect x="12" y="12" width="40" height="28" fill="#0d1e36"/>
+    <rect x="18" y="18" width="8" height="8" fill="#00c2ff" rx="1"/>
+    <rect x="38" y="18" width="8" height="8" fill="#00c2ff" rx="1"/>
+    <rect x="21" y="22" width="2" height="2" fill="#fff"/>
+    <rect x="41" y="22" width="2" height="2" fill="#fff"/>
+    <rect x="22" y="32" width="20" height="3" fill="#00c2ff" rx="1"/>
+    <rect x="20" y="30" width="4" height="3" fill="#00c2ff" rx="1"/>
+    <rect x="40" y="30" width="4" height="3" fill="#00c2ff" rx="1"/>
+    <rect x="28" y="44" width="8" height="6" fill="#b0bdd4"/>
+    <rect x="20" y="50" width="24" height="4" fill="#c8d4e8" rx="1"/>
+    <rect x="16" y="56" width="4" height="2" fill="#8899bb" rx="1"/>
+    <rect x="22" y="56" width="4" height="2" fill="#8899bb" rx="1"/>
+    <rect x="28" y="56" width="8" height="2" fill="#8899bb" rx="1"/>
+    <rect x="38" y="56" width="4" height="2" fill="#8899bb" rx="1"/>
+    <rect x="44" y="56" width="4" height="2" fill="#8899bb" rx="1"/>
+  </svg>
+  <div class="speech-bubble">
+    Authenticate to access your dashboard :)
+  </div>
+</div>
+
+<!-- Login card -->
+<div class="card">
+
+  <button class="github-btn" id="github-login-btn">
+    <svg viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.09-.745.083-.73.083-.73 1.205.085 1.84 1.237 1.84 1.237 1.07 1.834 2.807 1.304 3.492.997.108-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.31.468-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.3 1.23A11.5 11.5 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222 0 1.604-.015 2.896-.015 3.293 0 .322.216.694.825.576C20.565 21.795 24 17.295 24 12c0-6.63-5.37-12-12-12z"/></svg>
+    Continue with GitHub
+  </button>
+
+  <div class="card-footer">
+    <span class="lock"></span> Powered by Student Web Committee, IIT Guwahati<br>
+  </div>
+
+</div>
+<script>
+// ── Starfield ──
+const canvas = document.getElementById('stars');
+const ctx = canvas.getContext('2d');
+let stars = [];
+
+function resize() {
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resize();
+window.addEventListener('resize', () => { resize(); initStars(); });
+
+function initStars() {
+  stars = Array.from({length: 80}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height * 0.75,
+    r: Math.random() < 0.15 ? 2 : 1,
+    alpha: 0.3 + Math.random() * 0.7,
+    speed: 0.003 + Math.random() * 0.006,
+    phase: Math.random() * Math.PI * 2,
+    color: Math.random() < 0.3 ? '#4dd9ff' : '#ffffff',
+  }));
+}
+initStars();
+
+let t = 0;
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  t += 0.016;
+  for (const s of stars) {
+    const a = s.alpha * (0.7 + 0.3 * Math.sin(t * s.speed * 60 + s.phase));
+    ctx.globalAlpha = a;
+    ctx.fillStyle = s.color;
+    // pixel square stars
+    ctx.fillRect(Math.round(s.x), Math.round(s.y), s.r * 2, s.r * 2);
+    // cross accent for bigger stars
+    if (s.r > 1) {
+      ctx.fillRect(Math.round(s.x) - 2, Math.round(s.y) + s.r - 1, s.r * 2 + 4, 2);
+      ctx.fillRect(Math.round(s.x) + s.r - 1, Math.round(s.y) - 2, 2, s.r * 2 + 4);
+    }
+  }
+  ctx.globalAlpha = 1;
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// ── Authentication Logic ──
+document.getElementById('github-login-btn').addEventListener('click', () => {
+  // Redirect directly to your Express backend's GitHub OAuth endpoint
+  window.location.href = 'http://localhost:5000/api/auth/github';
+});
+
+</script>
+</body>
+</html>
