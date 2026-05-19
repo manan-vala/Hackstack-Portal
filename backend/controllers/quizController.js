@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 const Quiz = require('../models/Quiz');
-const Leaderboard = require('../models/Leaderboard');
 const Progress = require('../models/Progress');
 const User = require('../models/User');
 
@@ -68,13 +67,8 @@ exports.submitQuiz = async (req, res) => {
 
     const maxScore = quiz.questions.reduce((total, question) => total + question.points, 0);
 
-    const leaderboard = await Leaderboard.findOneAndUpdate(
-      { userId: req.user._id },
-      { $inc: { points: score, quizzesCompleted: 1 }, $setOnInsert: { userId: req.user._id } },
-      { new: true, upsert: true, runValidators: true }
-    );
-
-    await User.findByIdAndUpdate(req.user._id, { $inc: { totalScore: score } }, { runValidators: true });
+    // Update user's total score
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, { $inc: { totalScore: score } }, { new: true, runValidators: true });
 
     await Progress.findOneAndUpdate(
       { userId: req.user._id, moduleId: quiz.moduleId },
@@ -86,7 +80,7 @@ exports.submitQuiz = async (req, res) => {
       { new: true, upsert: true, runValidators: true }
     );
 
-    res.status(201).json({ message: 'Quiz submitted successfully.', leaderboard, score, maxScore, percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100) });
+    res.status(201).json({ message: 'Quiz submitted successfully.', score, maxScore, userTotalScore: updatedUser.totalScore, percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100) });
   } catch (error) {
     if (error.code === 11000) return res.status(409).json({ message: 'This quiz can only be submitted once.' });
     res.status(400).json({ message: 'Failed to submit quiz.', error: error.message });
