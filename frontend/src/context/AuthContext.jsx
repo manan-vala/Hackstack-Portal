@@ -9,17 +9,12 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const initializeAuth = async () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
       try {
-        const userData = await authService.getCurrentUser(token);
+        // Fetch user from API - token is in HttpOnly cookie (automatically sent)
+        const userData = await authService.getCurrentUser();
         setUser(userData);
       } catch (err) {
         console.error("Auth initialization failed:", err);
-        localStorage.removeItem('token');
       } finally {
         setLoading(false);
       }
@@ -27,14 +22,14 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
   }, []);
 
-  const login = (token, userData) => {
-    localStorage.setItem('token', token);
+  const login = (_, userData) => {
+    // Token is stored in HttpOnly cookie, only store user data
     setUser(userData);
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
     setUser(null);
+    // Cookie will be cleared by backend logout endpoint
   };
 
   return (

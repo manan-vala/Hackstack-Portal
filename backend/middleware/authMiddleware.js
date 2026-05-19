@@ -2,13 +2,20 @@ const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
 	try {
-		// Extract token from Authorization header
+		// Extract token from Authorization header or cookie
+		let token;
 		const authHeader = req.headers.authorization;
-		if (!authHeader || !authHeader.startsWith('Bearer ')) {
-			return res.status(401).json({ message: 'Authorization header missing or invalid.' });
+		
+		if (authHeader && authHeader.startsWith('Bearer ')) {
+			token = authHeader.substring(7); // Remove 'Bearer ' prefix
+		} else if (req.cookies && req.cookies.token) {
+			token = req.cookies.token;
+		}
+		
+		if (!token) {
+			return res.status(401).json({ message: 'Authorization header or cookie missing.' });
 		}
 
-		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 		const decoded = jwt.verify(token, process.env.JWT_SECRET);
 		
 		// Attach decoded user data to request object

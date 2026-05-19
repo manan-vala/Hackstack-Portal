@@ -94,7 +94,7 @@ Hackstack-Portal/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v16 or higher)
+- **Node.js** (v18 or higher)
 - **npm** (v8 or higher)
 - **MongoDB Account** (MongoDB Atlas recommended - free tier available)
 - **GitHub OAuth App** (for authentication)

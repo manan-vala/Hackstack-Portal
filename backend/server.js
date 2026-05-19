@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 const connectDB = require('./config/db');
 
 // Import Routes
@@ -21,6 +22,7 @@ app.use(cors({
   credentials: true 
 }));
 app.use(express.json()); // Parses incoming JSON payloads
+app.use(cookieParser()); // Parse cookies
 
 // Mount API Routes
 app.use('/api/modules', moduleRoutes);
@@ -33,14 +35,23 @@ app.use('/api/auth', authRoutes);
 // Global Error Handler (Optional but recommended)
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Internal Server Error', error: err.message });
+  res.status(500).json({ message: 'Internal Server Error' });
 });
-
-// Database Connection
-connectDB();
 
 // Start Server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server is up and running on port ${PORT}`);
-});
+const startServer = async () => {
+  try {
+    // Connect to database and wait for successful connection
+    await connectDB();
+
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is up and running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error('Failed to start server:', error.message);
+    process.exit(1);
+  }
+};
+
+startServer();

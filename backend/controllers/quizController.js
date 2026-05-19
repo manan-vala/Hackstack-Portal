@@ -33,13 +33,20 @@ exports.submitQuiz = async (req, res) => {
     return res.status(400).json({ message: 'Invalid quiz id.' });
   }
 
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ message: 'Quiz not found.' });
+    const quiz = await Quiz.findById(req.params.id).session(session);
+    if (!quiz) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'Quiz not found.' });
+    }
 
-    const progressRecord = await Progress.findOne({ userId: req.user._id, moduleId: quiz.moduleId });
-
+    // Atomic check: fetch and verify no duplicate attempt
+    const progressRecord = await Progress.findOne({ userId: req.user._id, moduleId: quiz.moduleId }).session(session);
     if (progressRecord?.attemptedQuizIds?.some((attemptedQuizId) => attemptedQuizId.equals(quiz._id))) {
+      await session.abortTransaction();
       return res.status(409).json({ message: 'This quiz can only be submitted once.' });
     }
 
@@ -67,8 +74,13 @@ exports.submitQuiz = async (req, res) => {
 
     const maxScore = quiz.questions.reduce((total, question) => total + question.points, 0);
 
-    // Update user's total score
-    const updatedUser = await User.findByIdAndUpdate(req.user._id, { $inc: { totalScore: score } }, { new: true, runValidators: true });
+    // Atomic: Increment score and record attempt in same transaction
+    const updatedUser = await User.findByIdAndUpdate(req.user._id, { $inc: { totalScore: score } }, { new: true, runValidators: true, session });
+    
+    if (!updatedUser) {
+      await session.abortTransaction();
+      return res.status(401).json({ message: 'User not found. Token may be stale.' });
+    }
 
     await Progress.findOneAndUpdate(
       { userId: req.user._id, moduleId: quiz.moduleId },
@@ -77,13 +89,17 @@ exports.submitQuiz = async (req, res) => {
         $addToSet: { attemptedQuizIds: quiz._id },
         $push: { quizScores: { dayId: quiz.dayId, score } }
       },
-      { new: true, upsert: true, runValidators: true }
+      { new: true, upsert: true, runValidators: true, session }
     );
 
+    await session.commitTransaction();
     res.status(201).json({ message: 'Quiz submitted successfully.', score, maxScore, userTotalScore: updatedUser.totalScore, percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100) });
   } catch (error) {
+    await session.abortTransaction();
     if (error.code === 11000) return res.status(409).json({ message: 'This quiz can only be submitted once.' });
     res.status(400).json({ message: 'Failed to submit quiz.', error: error.message });
+  } finally {
+    session.endSession();
   }
 };
 

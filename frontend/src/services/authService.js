@@ -6,11 +6,11 @@ export const authService = {
     return `${API_URL}/auth/github`;
   },
 
-  // Verifies the user using the token received during callback
-  getCurrentUser: async (token) => {
+  // Fetches the user using the HttpOnly cookie (automatically sent)
+  getCurrentUser: async () => {
     const response = await fetch(`${API_URL}/auth/me`, {
+      credentials: 'include', // Send cookies with the request
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
     });

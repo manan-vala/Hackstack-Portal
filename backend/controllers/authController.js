@@ -1,14 +1,34 @@
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
+const crypto = require('crypto');
 const User = require('../models/User');
 
+// Simple in-memory state store (expires after 10 minutes)
+const stateStore = new Map();
+
+// Cleanup expired states every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, value] of stateStore.entries()) {
+    if (now - value.timestamp > 600000) stateStore.delete(key);
+  }
+}, 300000);
+
 exports.redirectToGitHub = (req, res) => {
-  const redirectUri = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=user:email`;
+  const state = crypto.randomBytes(16).toString('hex');
+  stateStore.set(state, { timestamp: Date.now() });
+  const redirectUri = `https://github.com/login/oauth/authorize?client_id=${process.env.GITHUB_CLIENT_ID}&scope=user:email&state=${state}`;
   res.redirect(redirectUri);
 };
 
 exports.handleGitHubCallback = async (req, res) => {
-  const { code } = req.query;
+  const { code, state } = req.query;
+
+  // Validate state parameter
+  if (!state || !stateStore.has(state)) {
+    return res.redirect(`${process.env.FRONTEND_URL}/login?error=invalid_state`);
+  }
+  stateStore.delete(state);
 
   try {
     // 1. Exchange the code for an access token
@@ -42,15 +62,23 @@ exports.handleGitHubCallback = async (req, res) => {
       });
     }
 
-    // 4. Generate a JWT for your portal
+    // 4. Generate a JWT for your portal (no role claims to avoid stale state)
     const token = jwt.sign(
-      { _id: user._id, isAdmin: user.isAdmin }, 
+      { _id: user._id }, 
       process.env.JWT_SECRET, 
       { expiresIn: '7d' }
     );
 
-    // 5. Redirect back to the frontend React app
-    const redirectUrl = `${process.env.FRONTEND_URL}/auth-callback?token=${token}&username=${user.username}&id=${user._id}&isAdmin=${user.isAdmin}&avatarUrl=${encodeURIComponent(user.avatarUrl || '')}`;
+    // 5. Set JWT as secure HttpOnly cookie (cannot be accessed by JS, mitigates XSS/credential leaks)
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // 6. Redirect to frontend without token in URL
+    const redirectUrl = `${process.env.FRONTEND_URL}/auth-callback?username=${user.username}&id=${user._id}&avatarUrl=${encodeURIComponent(user.avatarUrl || '')}`;
     res.redirect(redirectUrl);
 
   } catch (error) {
