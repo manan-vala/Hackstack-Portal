@@ -1,8 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const auth = require('../middleware/auth');
-const admin = require('../middleware/admin');
-const quizzesCtrl = require('../controllers/quizzesController');
+const auth = require('../middleware/authMiddleware');
+const admin = require('../middleware/adminMiddleware');
+const quizzesCtrl = require('../controllers/quizController');
 
 const router = express.Router();
 
@@ -18,8 +18,8 @@ router.post('/:id/submit', auth, quizzesCtrl.submitQuiz);
 // POST /quizzes -> Create a new quiz (admin only).
 router.post('/', auth, admin, quizzesCtrl.createQuiz);
 
-// PATCH /quizzes/:id -> Update an existing quiz.
-router.patch('/:id', quizzesCtrl.updateQuiz);
+// PATCH /quizzes/:id -> Update an existing quiz (admin only).
+router.patch('/:id', auth, admin, quizzesCtrl.updateQuiz);
 
 // DELETE /quizzes/:id -> Remove a quiz (admin only).
 router.delete('/:id', auth, admin, quizzesCtrl.deleteQuiz);
