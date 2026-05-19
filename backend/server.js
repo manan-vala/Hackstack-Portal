@@ -46,6 +46,11 @@ app.use('/api/auth', authRoutes);
 
 // Global Error Handler (Optional but recommended)
 app.use((err, req, res, next) => {
+
+  if (res.headersSent) {
+    return next(err);
+  }
+  
   console.error(err.stack);
   res.status(500).json({ message: 'Internal Server Error' });
 });

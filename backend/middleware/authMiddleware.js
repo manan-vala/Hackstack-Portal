@@ -30,18 +30,8 @@ const auth = async (req, res, next) => {
     }
 
     req.user = user;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Not authorized, token failed." });
-  }
-
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = await User.findById(decoded._id); // Use _id (MongoDB's field) instead of id
-    if (!req.user) {
-      return res.status(404).json({ message: "User not found." });
-    }
-    next();
+    return next(); // ✅ Added 'return' here to stop execution
+    
   } catch (error) {
     return res.status(401).json({ message: "Not authorized, token failed." });
   }
