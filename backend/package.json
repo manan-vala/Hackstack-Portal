@@ -4,6 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "mongo:up": "docker compose up -d",
+    "mongo:down": "docker compose down",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
