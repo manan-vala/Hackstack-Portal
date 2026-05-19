@@ -17,10 +17,22 @@ const app = express();
 
 // Middleware
 // Ensure CORS accepts requests from your Vite frontend
-app.use(cors({ 
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173', 
-  credentials: true 
-}));
+const corsOrigin = (origin, callback) => {
+  const allowed = new Set(
+    [
+      process.env.FRONTEND_URL,
+      'http://localhost:5173',
+      'http://localhost:5174',
+    ].filter(Boolean)
+  );
+
+  if (!origin || allowed.has(origin)) {
+    return callback(null, true);
+  }
+  return callback(new Error(`CORS blocked origin: ${origin}`));
+};
+
+app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json()); // Parses incoming JSON payloads
 app.use(cookieParser()); // Parse cookies
 
