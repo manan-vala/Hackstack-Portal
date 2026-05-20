@@ -4,10 +4,29 @@ const User = require('../models/User');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
+const getModuleUploadDeadline = (moduleDoc) => {
+  if (!moduleDoc?.createdAt) return null;
+
+  const deadline = new Date(moduleDoc.createdAt);
+  deadline.setUTCHours(23, 59, 59, 999);
+  return deadline;
+};
+
+const serializeModule = (moduleDoc) => {
+  const uploadDeadline = getModuleUploadDeadline(moduleDoc);
+  const now = new Date();
+
+  return {
+    ...moduleDoc.toObject(),
+    uploadDeadline,
+    isExpired: uploadDeadline ? now > uploadDeadline : false
+  };
+};
+
 exports.listModules = async (req, res) => {
   try {
     const modules = await Module.find().sort({ createdAt: -1 });
-    res.json(modules);
+    res.json(modules.map(serializeModule));
   } catch (error) {
     res.status(500).json({ message: 'Failed to list modules.', error: error.message });
   }
@@ -21,7 +40,7 @@ exports.getModuleById = async (req, res) => {
   try {
     const moduleDoc = await Module.findById(req.params.id);
     if (!moduleDoc) return res.status(404).json({ message: 'Module not found.' });
-    res.json(moduleDoc);
+    res.json(serializeModule(moduleDoc));
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch module.', error: error.message });
   }
@@ -31,7 +50,7 @@ exports.getModuleBySlug = async (req, res) => {
   try {
     const moduleDoc = await Module.findOne({ slug: req.params.slug });
     if (!moduleDoc) return res.status(404).json({ message: 'Module not found.' });
-    res.json(moduleDoc);
+    res.json(serializeModule(moduleDoc));
   } catch (error) {
     res.status(500).json({ message: 'Failed to fetch module.', error: error.message });
   }
@@ -67,7 +86,7 @@ exports.registerModule = async (req, res) => {
 exports.createModule = async (req, res) => {
   try {
     const moduleDoc = await Module.create(req.body);
-    res.status(201).json(moduleDoc);
+    res.status(201).json(serializeModule(moduleDoc));
   } catch (error) {
     res.status(400).json({ message: 'Failed to create module.', error: error.message });
   }
@@ -81,7 +100,7 @@ exports.updateModule = async (req, res) => {
   try {
     const moduleDoc = await Module.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!moduleDoc) return res.status(404).json({ message: 'Module not found.' });
-    res.json(moduleDoc);
+    res.json(serializeModule(moduleDoc));
   } catch (error) {
     res.status(400).json({ message: 'Failed to update module.', error: error.message });
   }
