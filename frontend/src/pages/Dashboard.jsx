@@ -77,7 +77,7 @@ function Dashboard() {
 				</div>
 
 				<div className="dashboard-grid">
-					{moduleRows.length > 0 ? moduleRows.map((row, index) => <ModuleProgressCard key={row.id} row={row} index={index} />) : <div className="dashboard-empty">No registered modules yet.</div>}
+					{moduleRows.length > 0 ? moduleRows.map((row, index) => <ModuleProgressCard key={row.id || row._id} row={row} index={index} />) : <div className="dashboard-empty">No registered modules yet.</div>}
 				</div>
 			</section>
 		</div>;

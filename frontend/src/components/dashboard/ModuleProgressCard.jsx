@@ -35,7 +35,7 @@ export function ModuleProgressCard({ row, index = 0 }) {
           <strong>{quizResults.length}</strong>
         </div>
         <div className="module-quiz-results-list">
-          {quizResults.length > 0 ? quizResults.map((quiz) => <QuizResultItem key={quiz.id} quiz={quiz} />) : <div className="module-quiz-empty">No quizzes available for this module.</div>}
+          {quizResults.length > 0 ? quizResults.map((quiz) => <QuizResultItem key={quiz.id || quiz._id} quiz={quiz} />) : <div className="module-quiz-empty">No quizzes available for this module.</div>}
         </div>
       </div>
 
