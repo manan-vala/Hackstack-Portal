@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthCallback from './pages/AuthCallback';
@@ -18,19 +18,12 @@ const ProtectedRoute = ({ children }) => {
   return children;
 };
 
-// Component to handle the fallback route redirect
-const RedirectToLogin = () => {
-  useEffect(() => {
-    window.location.href = '/login.html';
-  }, []);
-  return null;
-};
-
 const App = () => {
   return (
     <AuthProvider>
       <Router>
         <Routes>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route path="/auth-callback" element={<AuthCallback />} />
           
           {/* Protected Routes */}
@@ -45,8 +38,8 @@ const App = () => {
             } 
           />
           
-          {/* Fallback route: Send unknown URLs to your HTML page */}
-          <Route path="*" element={<RedirectToLogin />} />
+          {/* Fallback route: run auth check through dashboard route first */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
       </Router>
     </AuthProvider>
