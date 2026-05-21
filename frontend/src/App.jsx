@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AuthCallback from './pages/AuthCallback';
+import Dashboard from './pages/Dashboard';
 
 // A wrapper to protect routes that require authentication
 const ProtectedRoute = ({ children }) => {
@@ -31,9 +32,7 @@ const App = () => {
             path="/dashboard" 
             element={
               <ProtectedRoute>
-                <div className="min-h-screen bg-slate-950 text-white p-8">
-                  <h1>Welcome to the Dashboard</h1>
-                </div>
+                <Dashboard />
               </ProtectedRoute>
             } 
           />
