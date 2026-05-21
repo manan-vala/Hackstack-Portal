@@ -9,6 +9,7 @@ const connectDB = require('./config/db');
 const moduleRoutes = require('./routes/moduleRoutes');
 const progressRoutes = require('./routes/progressRoutes');
 const quizRoutes = require('./routes/quizRoutes');
+const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const authRoutes = require('./routes/authRoutes'); // Required for the login flow
@@ -40,6 +41,7 @@ app.use(cookieParser()); // Parse cookies
 app.use('/api/modules', moduleRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/quizzes', quizRoutes);
+app.use('/api/leaderboards', leaderboardRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/auth', authRoutes);
