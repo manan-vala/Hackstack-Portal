@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Quiz = require('../models/Quiz');
 const Progress = require('../models/Progress');
 const User = require('../models/User');
+const Leaderboard = require('../models/Leaderboard');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -22,6 +23,30 @@ const serializeQuiz = (quiz) => {
     submissionDeadline,
     isExpired: submissionDeadline ? now > submissionDeadline : false
   };
+};
+
+const updateLeaderboardEntry = async ({ user, moduleId, score, session }) => {
+  await Leaderboard.findOneAndUpdate(
+    {
+      userId: user._id,
+      moduleId: moduleId ?? null,
+      periodType: 'all-time'
+    },
+    {
+      $setOnInsert: {
+        userId: user._id,
+        moduleId: moduleId ?? null,
+        periodType: 'all-time',
+        score: 0
+      },
+      $set: {
+        username: user.username,
+        avatarUrl: user.avatarUrl
+      },
+      $inc: { score }
+    },
+    { new: true, upsert: true, runValidators: true, session }
+  );
 };
 
 exports.listQuizzes = async (req, res) => {
@@ -117,6 +142,20 @@ exports.submitQuiz = async (req, res) => {
       await session.abortTransaction();
       return res.status(401).json({ message: 'User not found. Token may be stale.' });
     }
+
+    await updateLeaderboardEntry({
+      user: updatedUser,
+      moduleId: quiz.moduleId,
+      score,
+      session
+    });
+
+    await updateLeaderboardEntry({
+      user: updatedUser,
+      moduleId: null,
+      score,
+      session
+    });
 
     await session.commitTransaction();
     res.status(201).json({ message: 'Quiz submitted successfully.', score, maxScore, userTotalScore: updatedUser.totalScore, percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100) });
