@@ -473,9 +473,6 @@
   .quiz-result-meta {
     justify-content: flex-start;
   }
-}
-
-@media (max-width: 640px) {
   .dashboard-hero-metrics {
     grid-template-columns: 1fr;
   }
