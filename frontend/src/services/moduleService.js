@@ -1,4 +1,4 @@
-import { apiClient } from './apiClient';
+import { apiClient } from "./apiClient";
 
 const getErrorMessage = (error, fallback) =>
   error.response?.data?.message || error.message || fallback;
@@ -6,10 +6,10 @@ const getErrorMessage = (error, fallback) =>
 export const moduleService = {
   listModules: async () => {
     try {
-      const response = await apiClient.get('/modules');
+      const response = await apiClient.get("/modules");
       return response.data;
     } catch (error) {
-      throw new Error(getErrorMessage(error, 'Failed to load modules.'));
+      throw new Error(getErrorMessage(error, "Failed to load modules."));
     }
   },
 
@@ -18,7 +18,7 @@ export const moduleService = {
       const response = await apiClient.get(`/modules/${slug}`);
       return response.data;
     } catch (error) {
-      throw new Error(getErrorMessage(error, 'Failed to load module.'));
+      throw new Error(getErrorMessage(error, "Failed to load module."));
     }
   },
 
@@ -27,7 +27,7 @@ export const moduleService = {
       const response = await apiClient.post(`/modules/${moduleId}/register`);
       return response.data;
     } catch (error) {
-      throw new Error(getErrorMessage(error, 'Failed to register for module.'));
+      throw new Error(getErrorMessage(error, "Failed to register for module."));
     }
   },
 
@@ -36,7 +36,9 @@ export const moduleService = {
       const response = await apiClient.delete(`/modules/${moduleId}/register`);
       return response.data;
     } catch (error) {
-      throw new Error(getErrorMessage(error, 'Failed to unregister from module.'));
+      throw new Error(
+        getErrorMessage(error, "Failed to unregister from module."),
+      );
     }
   },
 };

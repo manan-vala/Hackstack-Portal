@@ -3,7 +3,7 @@
 // Uses isAdmin flag from the JWT payload (set by your backend).
 
 import { Navigate } from "react-router-dom";
-import { useAdminAuth } from "../../context/AdminAuthContext";
+import { useAdminAuth } from "./admin-auth-context";
 
 export default function AdminProtectedRoute({ children }) {
   const { admin, loading } = useAdminAuth();
@@ -11,7 +11,9 @@ export default function AdminProtectedRoute({ children }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-950 flex items-center justify-center">
-        <span className="text-gray-400 text-sm animate-pulse">Verifying access…</span>
+        <span className="text-gray-400 text-sm animate-pulse">
+          Verifying access…
+        </span>
       </div>
     );
   }
