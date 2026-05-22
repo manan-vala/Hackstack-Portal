@@ -1,0 +1,159 @@
+// src/pages/admin/AdminDashboard.jsx
+// Protected admin dashboard.
+// Shows two action cards: Create a Module, Edit a Module.
+// Each card navigates to its respective route (blank pages for now).
+
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { useAdminAuth } from "../../context/AdminAuthContext";
+
+const ACTIONS = [
+  {
+    key: "create",
+    path: "/admin/modules/create",
+    icon: (
+      <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+      </svg>
+    ),
+    iconBg: "bg-indigo-500/15 text-indigo-400",
+    border: "hover:border-indigo-500/60",
+    title: "Create a Module",
+    description: "Add a new course module with chapters, markdown content, and YouTube video links.",
+    badge: "New",
+    badgeColor: "bg-indigo-900/60 text-indigo-300 border border-indigo-700",
+  },
+  {
+    key: "edit",
+    path: "/admin/modules/edit",
+    icon: (
+      <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+      </svg>
+    ),
+    iconBg: "bg-emerald-500/15 text-emerald-400",
+    border: "hover:border-emerald-500/60",
+    title: "Edit a Module",
+    description: "Update existing modules — modify chapters, fix markdown, swap video links, or manage quizzes.",
+    badge: "Manage",
+    badgeColor: "bg-emerald-900/60 text-emerald-300 border border-emerald-700",
+  },
+];
+
+export default function AdminDashboard() {
+  const { admin, logout } = useAdminAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate("/admin/login", { replace: true });
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-950 px-4 py-10">
+      <div className="max-w-3xl mx-auto">
+
+        {/* ── Top bar ─────────────────────────────────────────────────── */}
+        <div className="flex items-center justify-between mb-10">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-indigo-600 flex items-center justify-center shadow shadow-indigo-900/50">
+              <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+            </div>
+            <div>
+              <h1 className="text-white font-bold text-lg leading-tight tracking-tight">Hackstack Admin</h1>
+              <p className="text-gray-500 text-xs">Signed in as <span className="text-gray-300">{admin?.username}</span></p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-red-400 transition-colors px-3 py-1.5 rounded-lg hover:bg-red-950/40"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+            Logout
+          </button>
+        </div>
+
+        {/* ── Welcome ─────────────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h2 className="text-2xl font-bold text-white tracking-tight">Dashboard</h2>
+          <p className="text-gray-400 text-sm mt-1">
+            Manage course content for the Hackstack portal.
+          </p>
+        </motion.div>
+
+        {/* ── Action Cards ─────────────────────────────────────────────── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {ACTIONS.map((action, i) => (
+            <motion.button
+              key={action.key}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1, type: "spring", stiffness: 200 }}
+              onClick={() => navigate(action.path)}
+              className={`group text-left w-full bg-gray-900 border border-gray-800 ${action.border}
+                rounded-2xl p-6 transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 cursor-pointer`}
+            >
+              {/* Icon + Badge row */}
+              <div className="flex items-start justify-between mb-4">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${action.iconBg}`}>
+                  {action.icon}
+                </div>
+                <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-md ${action.badgeColor}`}>
+                  {action.badge}
+                </span>
+              </div>
+
+              {/* Title */}
+              <h3 className="text-white font-bold text-lg mb-1.5 group-hover:text-indigo-300 transition-colors">
+                {action.title}
+              </h3>
+
+              {/* Description */}
+              <p className="text-gray-400 text-sm leading-relaxed">
+                {action.description}
+              </p>
+
+              {/* Arrow */}
+              <div className="flex items-center gap-1 mt-5 text-gray-500 group-hover:text-indigo-400 transition-colors text-sm font-medium">
+                Go to page
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+
+        {/* ── Quick info strip ─────────────────────────────────────────── */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.3 }}
+          className="mt-8 grid grid-cols-3 divide-x divide-gray-800 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden"
+        >
+          {[
+            { label: "Total Users",     value: "—", note: "from /api/admin/stats" },
+            { label: "Total Modules",   value: "—", note: "from /api/modules"     },
+            { label: "Active Quizzes",  value: "—", note: "from /api/quizzes"     },
+          ].map((stat) => (
+            <div key={stat.label} className="px-5 py-4 text-center">
+              <p className="text-xl font-bold text-white">{stat.value}</p>
+              <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
+              <p className="text-[10px] text-gray-600 mt-0.5">{stat.note}</p>
+            </div>
+          ))}
+        </motion.div>
+
+      </div>
+    </div>
+  );
+}
