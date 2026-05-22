@@ -11,7 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLeaderboard, useModules } from "./use-leaderboard";
 import Podium from "./podium";
 import LeaderboardRow from "./leaderboard-row";
-import Avatar from "./Avatar";
+import Avatar from "./avatar";
 
 // ─── Pull the logged-in user from your AuthContext ─────────────────────────────
 // Replace this import + hook with however your project exposes the current user.
