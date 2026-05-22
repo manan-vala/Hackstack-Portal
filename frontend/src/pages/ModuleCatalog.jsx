@@ -1,7 +1,13 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useModules } from '../context/ModulesContext';
-import './modules.css';
+import { useMemo, useState } from "react";
+import {
+  ArrowRight,
+  CheckCircle2,
+  ChevronDown,
+  Sparkles,
+} from "lucide-react";
+import { Link } from "react-router-dom";
+import { useModules } from "../context/ModulesContext";
+import "./modules.css";
 
 function ModuleCatalog() {
   const {
@@ -12,116 +18,231 @@ function ModuleCatalog() {
     registerModule,
     unregisterModule,
     getProgressForModule,
+    getQuizzesForModule,
   } = useModules();
-  const [actionError, setActionError] = useState('');
-  const [pendingId, setPendingId] = useState('');
+
+  const [actionError, setActionError] = useState("");
+  const [pendingId, setPendingId] = useState("");
+
+  const learningSummary = useMemo(() => {
+    const totalDays = modules.reduce((sum, module) => sum + module.dayCount, 0);
+    const enrolledModules = modules.filter((module) =>
+      registeredModuleIds.includes(module.id)
+    );
+    const enrolledTotalDays = enrolledModules.reduce(
+      (sum, module) => sum + module.dayCount,
+      0
+    );
+    const completedDays = enrolledModules.reduce((sum, module) => {
+      const progress = getProgressForModule(module.id);
+      return sum + (progress?.completedDays?.length || 0);
+    }, 0);
+    const registeredCount = enrolledModules.length;
+    const completionPercent =
+      registeredCount > 0 && enrolledTotalDays > 0
+        ? Math.round((completedDays / enrolledTotalDays) * 100)
+        : 0;
+
+    return {
+      totalStacks: modules.length,
+      totalDays,
+      registeredCount,
+      completedDays,
+      completionPercent,
+    };
+  }, [getProgressForModule, modules, registeredModuleIds]);
 
   const handleRegister = async (moduleId) => {
-    setActionError('');
+    setActionError("");
     setPendingId(moduleId);
     try {
       await registerModule(moduleId);
     } catch (err) {
       setActionError(err.message);
     } finally {
-      setPendingId('');
+      setPendingId("");
     }
   };
 
   const handleUnregister = async (moduleId) => {
-    setActionError('');
+    setActionError("");
     setPendingId(moduleId);
     try {
       await unregisterModule(moduleId);
     } catch (err) {
       setActionError(err.message);
     } finally {
-      setPendingId('');
+      setPendingId("");
     }
   };
 
   if (loading) {
-    return <div className="modules-shell">Loading modules...</div>;
+    return (
+      <div className="modules-shell">
+        <div className="modules-panel modules-empty-state">Loading modules...</div>
+      </div>
+    );
   }
 
   return (
     <div className="modules-shell">
       <header className="modules-hero">
-        <h1>Your Learning Path</h1>
-        <p>Register for modules, complete daily lessons, and track quiz progress on your dashboard.</p>
+        <span className="modules-pill">
+          <Sparkles size={14} />
+          {learningSummary.totalStacks} stacks · {learningSummary.totalDays} days
+          · build something real
+        </span>
+        <h2>Your Learning Path</h2>
+        <p>
+          Register stack by stack, move at your own pace, complete each daily
+          task, and earn points through quizzes.
+        </p>
       </header>
 
-      {error ? <div className="modules-alert">{error}</div> : null}
-      {actionError ? <div className="modules-alert">{actionError}</div> : null}
+      {error ? <div className="modules-alert modules-alert-danger">{error}</div> : null}
+      {actionError ? (
+        <div className="modules-alert modules-alert-danger">{actionError}</div>
+      ) : null}
 
       {modules.length === 0 ? (
-        <div className="modules-alert">
-          No modules found in the database yet. Ask an admin to publish modules via the API.
+        <div className="modules-panel modules-empty-state">
+          No modules have been published yet. Ask an admin to add modules through
+          the backend.
         </div>
       ) : (
-        <div className="modules-grid">
-          {modules.map((module) => {
-            const isRegistered = registeredModuleIds.includes(module.id);
-            const progress = getProgressForModule(module.id);
-            const completedDays = progress?.completedDays?.length || 0;
-            const pct =
-              module.dayCount > 0
-                ? Math.round((completedDays / module.dayCount) * 100)
-                : 0;
+        <>
+          <div className="modules-grid">
+            {modules.map((module) => {
+              const isRegistered = registeredModuleIds.includes(module.id);
+              const progress = getProgressForModule(module.id);
+              const quizzes = getQuizzesForModule(module.id);
+              const completedDays = progress?.completedDays?.length || 0;
+              const completionPercent =
+                module.dayCount > 0
+                  ? Math.round((completedDays / module.dayCount) * 100)
+                  : 0;
+              const videoCount = module.days.filter((day) => day.videoUrl).length;
+              const outcomes =
+                module.learningOutcomes.length > 0
+                  ? module.learningOutcomes
+                  : module.days.slice(0, 4).map((day) => day.title);
 
-            return (
-              <article key={module.id} className="module-catalog-card">
-                <div
-                  className="module-catalog-header"
+              return (
+                <article
+                  key={module.id}
+                  className="module-card"
                   style={{
-                    background:
-                      'linear-gradient(135deg, #6366f1 0%, #3b82f6 100%)',
+                    "--module-banner": module.theme.banner,
+                    "--module-button": module.theme.button,
+                    "--module-accent": module.theme.accent,
+                    "--module-accent-soft": module.theme.accentSoft,
+                    "--module-accent-border": module.theme.accentBorder,
+                    "--module-dot": module.theme.dot,
+                    "--module-shadow": module.theme.bannerShadow,
                   }}
                 >
-                  <span>Module {module.week}</span>
-                  <h2>{module.title}</h2>
-                </div>
-                <div className="module-catalog-body">
-                  <p>{module.description}</p>
-                  <div className="module-meta">
-                    <span>{module.dayCount} days</span>
-                    <span>{module.difficulty || 'All levels'}</span>
-                    {isRegistered ? <span>{pct}% complete</span> : <span>Not enrolled</span>}
+                  <div className="module-card-banner">
+                    <div>
+                      <span className="module-badge">Module {module.week}</span>
+                      <div className="module-card-heading">
+                        <div className="module-card-icon">
+                          <CheckCircle2 size={18} />
+                        </div>
+                        <div>
+                          <small>{module.difficulty || "Guided stack"}</small>
+                          <h3>{module.title}</h3>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="module-card-percent">{completionPercent}%</div>
                   </div>
-                  <div className="module-actions">
-                    {isRegistered ? (
-                      <>
-                        <Link
-                          to={`/modules/${module.slug}`}
-                          className="module-btn module-btn-secondary"
-                        >
-                          {completedDays > 0 ? 'Resume' : 'Start'}
-                        </Link>
+
+                  <div className="module-card-body">
+                    <p>{module.description}</p>
+
+                    <div className="module-chip-row">
+                      <span>{module.dayCount} days</span>
+                      <span>{quizzes.length} quiz questions</span>
+                      <span>{videoCount} videos included</span>
+                      <span>
+                        {isRegistered ? `${completedDays} days done` : "Not enrolled"}
+                      </span>
+                    </div>
+
+                    <div className="module-progress">
+                      <div style={{ width: `${completionPercent}%` }} />
+                    </div>
+
+                    <div className="module-card-actions">
+                      {isRegistered ? (
+                        <>
+                          <Link
+                            to={`/modules/${module.slug}`}
+                            className="module-primary-button"
+                          >
+                            {completedDays > 0 ? "Resume" : "Start"}
+                            <ArrowRight size={15} />
+                          </Link>
+                          <button
+                            type="button"
+                            className="module-text-button"
+                            disabled={pendingId === module.id}
+                            onClick={() => handleUnregister(module.id)}
+                          >
+                            Unenroll
+                          </button>
+                        </>
+                      ) : (
                         <button
                           type="button"
-                          className="module-btn module-btn-ghost"
+                          className="module-primary-button"
                           disabled={pendingId === module.id}
-                          onClick={() => handleUnregister(module.id)}
+                          onClick={() => handleRegister(module.id)}
                         >
-                          Unenroll
+                          Register for this stack
                         </button>
-                      </>
-                    ) : (
-                      <button
-                        type="button"
-                        className="module-btn module-btn-primary"
-                        disabled={pendingId === module.id}
-                        onClick={() => handleRegister(module.id)}
-                      >
-                        Register
-                      </button>
-                    )}
+                      )}
+                    </div>
+
+                    <details className="module-outcomes">
+                      <summary>
+                        <span>What you&apos;ll learn</span>
+                        <ChevronDown size={14} />
+                      </summary>
+                      <ul>
+                        {outcomes.map((outcome) => (
+                          <li key={outcome}>{outcome}</li>
+                        ))}
+                      </ul>
+                    </details>
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
+                </article>
+              );
+            })}
+          </div>
+
+          <section className="modules-summary">
+            <div className="modules-summary-stack">
+              <span className="modules-summary-orb" />
+              <span className="modules-summary-orb is-second" />
+              <span className="modules-summary-orb is-third" />
+              <div>
+                <strong>Complete all stacks to earn your Hackstack certificate</strong>
+                <p>
+                  {learningSummary.registeredCount} of {learningSummary.totalStacks}{" "}
+                  stacks enrolled · {learningSummary.completedDays} days complete
+                </p>
+              </div>
+            </div>
+            <div className="modules-summary-meter">
+              <span>{learningSummary.completionPercent}%</span>
+              <div>
+                <div style={{ width: `${learningSummary.completionPercent}%` }} />
+              </div>
+            </div>
+          </section>
+        </>
       )}
     </div>
   );

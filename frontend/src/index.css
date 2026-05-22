@@ -1,112 +1,126 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
+  --font-body: "Manrope", sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --page-bg:
+    radial-gradient(circle at top left, rgba(255, 145, 77, 0.15), transparent 26%),
+    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 24%),
+    #f3f6fb;
+  --surface: rgba(255, 255, 255, 0.92);
+  --surface-solid: #ffffff;
+  --surface-subtle: #f8fbff;
+  --text-strong: #081223;
+  --text: #273244;
+  --muted: #5e6c81;
+  --line: rgba(10, 22, 41, 0.09);
+  --line-strong: rgba(10, 22, 41, 0.14);
+  --accent: #2e78ff;
+  --accent-strong: #0f4ddb;
+  --accent-soft: rgba(46, 120, 255, 0.12);
+  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
+  --shadow-strong: 0 28px 80px rgba(15, 23, 42, 0.12);
+  --success-bg: #eafcf3;
+  --success-border: rgba(30, 173, 96, 0.22);
+  --warning-bg: #fff7e7;
+  --warning-border: rgba(227, 162, 23, 0.22);
+  --danger-bg: #fff1f1;
+  --danger-border: rgba(223, 67, 67, 0.22);
+}
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
+html[data-theme="dark"] {
+  --page-bg:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 24%),
+    radial-gradient(circle at top right, rgba(94, 92, 230, 0.16), transparent 28%),
+    #08111d;
+  --surface: rgba(8, 17, 30, 0.82);
+  --surface-solid: #091322;
+  --surface-subtle: #0d1728;
+  --text-strong: #f7fbff;
+  --text: #d3dce7;
+  --muted: #9aabc2;
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.12);
+  --accent: #8ab4ff;
+  --accent-strong: #5f8cff;
+  --accent-soft: rgba(96, 165, 250, 0.18);
+  --shadow-soft: 0 24px 48px rgba(2, 6, 23, 0.38);
+  --shadow-strong: 0 30px 80px rgba(2, 6, 23, 0.5);
+  --success-bg: rgba(11, 72, 44, 0.34);
+  --success-border: rgba(52, 211, 153, 0.18);
+  --warning-bg: rgba(111, 74, 10, 0.32);
+  --warning-border: rgba(245, 158, 11, 0.2);
+  --danger-bg: rgba(93, 22, 22, 0.34);
+  --danger-border: rgba(248, 113, 113, 0.18);
+}
 
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
+html {
+  min-height: 100%;
+  background: #f3f6fb;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  font-family: var(--font-body);
   color: var(--text);
-  background: var(--bg);
+  background: var(--page-bg);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-body {
-  margin: 0;
+body,
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
 }
 
 #root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
+  min-height: 100vh;
+}
+
+*,
+*::before,
+*::after {
   box-sizing: border-box;
 }
 
 h1,
-h2 {
-  font-family: var(--heading);
-  font-weight: 500;
-  color: var(--text-h);
+h2,
+h3,
+h4 {
+  color: var(--text-strong);
+  font-family: var(--font-display);
 }
 
-h1 {
-  font-size: 56px;
-  line-height: 1.15;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
+a {
+  color: inherit;
 }
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
+
+button {
+  border: 0;
+  cursor: pointer;
 }
-p {
-  margin: 0;
+
+button,
+a {
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+button:disabled {
+  cursor: not-allowed;
 }
 
 code,
-.counter {
-  font-family: var(--mono);
-  display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
-}
-
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+pre {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }

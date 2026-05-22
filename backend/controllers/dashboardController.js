@@ -116,6 +116,7 @@ exports.getDashboard = async (req, res) => {
 
       return {
         id: moduleId,
+        slug: moduleDoc.slug,
         title: moduleDoc.title,
         description: moduleDoc.description,
         difficulty: moduleDoc.difficulty || 'Module',

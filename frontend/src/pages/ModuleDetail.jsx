@@ -1,11 +1,27 @@
-import { useMemo, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
-import { useModules } from '../context/ModulesContext';
-import './modules.css';
+import { useMemo, useState } from "react";
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  CheckCircle2,
+  ClipboardCheck,
+  PlayCircle,
+  Sparkles,
+} from "lucide-react";
+import { Link, useParams } from "react-router-dom";
+import { DayModal } from "../components/DayModal";
+import { Markdown } from "../components/Markdown";
+import { useAuth } from "../context/AuthContext";
+import { useModules } from "../context/ModulesContext";
+import {
+  extractMarkdownGoals,
+  extractMarkdownSummary,
+  extractMarkdownTask,
+} from "../utils/moduleContent";
+import "./modules.css";
 
 function ModuleDetail() {
   const { slug } = useParams();
+  const { user } = useAuth();
   const {
     modules,
     loading,
@@ -23,21 +39,27 @@ function ModuleDetail() {
   );
 
   const [openDay, setOpenDay] = useState(null);
-  const [answers, setAnswers] = useState([]);
-  const [quizError, setQuizError] = useState('');
-  const [submitting, setSubmitting] = useState(false);
+  const [actionError, setActionError] = useState("");
+  const [pendingDayId, setPendingDayId] = useState("");
 
   if (loading) {
-    return <div className="modules-shell">Loading module...</div>;
+    return (
+      <div className="modules-shell">
+        <div className="modules-panel modules-empty-state">Loading module...</div>
+      </div>
+    );
   }
 
   if (!module) {
     return (
       <div className="modules-shell">
-        <p>Module not found.</p>
-        <Link to="/modules" className="module-detail-back">
-          Back to modules
-        </Link>
+        <div className="modules-panel modules-empty-state">
+          <p>Module not found.</p>
+          <Link to="/modules" className="module-back-link">
+            <ArrowLeft size={16} />
+            Back to modules
+          </Link>
+        </div>
       </div>
     );
   }
@@ -47,171 +69,256 @@ function ModuleDetail() {
   const completedSet = new Set(
     (progress?.completedDays || []).map((id) => id.toString())
   );
+  const scoreByDayId = new Map(
+    (progress?.quizScores || []).map((entry) => [entry.dayId?.toString(), entry.score])
+  );
+  const attemptedQuizIds = new Set(
+    (progress?.attemptedQuizIds || []).map((id) => id.toString())
+  );
   const moduleQuizzes = getQuizzesForModule(module.id);
   const quizByDayId = new Map(
     moduleQuizzes.map((quiz) => [quiz.dayId?.toString(), quiz])
   );
 
-  const handleCompleteDay = async (day) => {
+  const enrichedDays = module.days.map((day, index) => {
+    const quiz = quizByDayId.get(day.id);
+    const questionCount = quiz?.questions?.length || 0;
+    const totalPoints =
+      quiz?.questions?.reduce((sum, question) => sum + question.points, 0) || 0;
+    const previousDay = module.days[index - 1];
+    const completed = completedSet.has(day.id);
+    const locked =
+      !isRegistered ||
+      (index > 0 && !completedSet.has(previousDay?.id?.toString()));
+
+    return {
+      ...day,
+      quiz,
+      questionCount,
+      totalPoints,
+      completed,
+      locked,
+      summary: extractMarkdownSummary(day.contentMarkdown),
+      goals: extractMarkdownGoals(day.contentMarkdown),
+      task: extractMarkdownTask(day.contentMarkdown),
+    };
+  });
+
+  const completionPercent =
+    module.dayCount > 0
+      ? Math.round((completedSet.size / module.dayCount) * 100)
+      : 0;
+  const finalTaskContent =
+    module.finalTask ||
+    `## Final Task\n\nBuild something that proves you understood ${module.title}.\n\n### Requirements\n- Complete every learning day in the module\n- Apply the concepts to a real mini project\n- Share your final submission with your mentors\n\n### Deliverable\nSubmit your project link and a short walkthrough of what you built.`;
+
+  const handleDayAction = async (dayId, _score, userAnswers) => {
     if (!isRegistered) return;
 
-    try {
-      await completeDay(module.id, day.id);
-    } catch (err) {
-      setQuizError(err.message);
-    }
-  };
-
-  const handleSubmitQuiz = async (quiz) => {
-    if (!quiz || answers.length !== quiz.questions.length) return;
-
-    setSubmitting(true);
-    setQuizError('');
+    const quiz = quizByDayId.get(dayId);
+    setActionError("");
+    setPendingDayId(dayId);
 
     try {
-      await submitQuiz(quiz._id, answers);
-      await handleCompleteDay(openDay);
-      setAnswers([]);
+      if (quiz && Array.isArray(userAnswers)) {
+        await submitQuiz(quiz._id, userAnswers);
+      }
+
+      await completeDay(module.id, dayId);
     } catch (err) {
-      setQuizError(err.message);
+      setActionError(err.message || "Failed to update this day.");
     } finally {
-      setSubmitting(false);
+      setPendingDayId("");
     }
   };
 
   const openDayQuiz = openDay ? quizByDayId.get(openDay.id) : null;
+  const openDayScore = openDay ? scoreByDayId.get(openDay.id) : undefined;
+  const openDayAttempt =
+    openDay && openDayQuiz
+      ? attemptedQuizIds.has(openDayQuiz._id?.toString()) || scoreByDayId.has(openDay.id)
+        ? {
+            score: openDayScore ?? 0,
+            totalMarks:
+              openDayQuiz.questions?.reduce(
+                (sum, question) => sum + question.points,
+                0
+              ) || 0,
+          }
+        : null
+      : null;
 
   return (
-    <div className="modules-shell">
-      <Link to="/modules" className="module-detail-back">
-        ← All modules
+    <div
+      className="modules-shell module-detail-shell"
+      style={{
+        "--module-banner": module.theme.banner,
+        "--module-button": module.theme.button,
+        "--module-accent": module.theme.accent,
+        "--module-accent-soft": module.theme.accentSoft,
+        "--module-accent-border": module.theme.accentBorder,
+        "--module-dot": module.theme.dot,
+        "--module-shadow": module.theme.bannerShadow,
+      }}
+    >
+      <Link to="/modules" className="module-back-link">
+        <ArrowLeft size={16} />
+        All courses
       </Link>
 
       <header className="module-detail-hero">
-        <h1>{module.title}</h1>
-        <p>{module.description}</p>
-        <div className="module-meta">
-          <span>{module.dayCount} days</span>
-          <span>{completedSet.size}/{module.dayCount} completed</span>
+        <div className="module-detail-hero-copy">
+          <span className="module-badge">Module {module.week}</span>
+          <div className="module-detail-title-row">
+            <div className="module-card-icon">
+              <Sparkles size={18} />
+            </div>
+            <div>
+              <small>{module.difficulty || "Guided stack"}</small>
+              <h2>{module.title}</h2>
+            </div>
+          </div>
+          <p>{module.description}</p>
+        </div>
+
+        <div className="module-detail-hero-side">
+          <div className="module-detail-progress-copy">
+            <span>{completionPercent}% complete</span>
+            <strong>
+              {completedSet.size}/{module.dayCount} days done
+            </strong>
+          </div>
+          <div className="module-detail-progress-line">
+            <div style={{ width: `${completionPercent}%` }} />
+          </div>
+          <div className="module-detail-hero-actions">
+            <Link to="/dashboard" className="module-secondary-action">
+              View full results
+            </Link>
+            <a href="#module-final-task" className="module-primary-action">
+              Final task
+            </a>
+          </div>
         </div>
       </header>
 
-      {error ? <div className="modules-alert">{error}</div> : null}
-      {quizError ? <div className="modules-alert">{quizError}</div> : null}
+      {error ? <div className="modules-alert modules-alert-danger">{error}</div> : null}
+      {actionError ? (
+        <div className="modules-alert modules-alert-danger">{actionError}</div>
+      ) : null}
 
       {!isRegistered ? (
-        <div className="module-warning">
-          You are not enrolled in this module. Go back to the catalog to register first.
+        <div className="modules-alert modules-alert-warning">
+          You are not enrolled in this module yet. Head back to the module catalog
+          and register first.
         </div>
       ) : null}
 
-      <h2>Daily lessons</h2>
-      <div className="module-days-grid">
-        {module.days.map((day, index) => {
-          const done = completedSet.has(day.id);
-          const previousDay = module.days[index - 1];
-          const locked =
-            !isRegistered ||
-            (index > 0 && !completedSet.has(previousDay?.id?.toString()));
+      {module.learningOutcomes.length > 0 ? (
+        <section className="module-learning-strip">
+          {module.learningOutcomes.map((outcome) => (
+            <span key={outcome}>{outcome}</span>
+          ))}
+        </section>
+      ) : null}
 
-          return (
+      <section className="module-section">
+        <div className="module-section-heading">
+          <div>
+            <h3>Daily Tasks</h3>
+            <p>
+              Work through each day in order. Every completed lesson pushes your
+              module progress and unlocks the next step.
+            </p>
+          </div>
+        </div>
+
+        <div className="module-days-grid">
+          {enrichedDays.map((day) => (
             <button
               key={day.id}
               type="button"
-              className={`module-day-card ${done ? 'is-done' : ''} ${locked ? 'is-locked' : ''}`}
-              disabled={locked}
+              className={`module-day-card ${
+                day.completed ? "is-complete" : ""
+              } ${day.locked ? "is-locked" : ""}`}
+              disabled={day.locked}
               onClick={() => {
                 setOpenDay(day);
-                setAnswers([]);
-                setQuizError('');
+                setActionError("");
               }}
             >
-              <span>Day {day.day}</span>
-              <h3>{day.title}</h3>
-              <p>{day.chapterTitle}</p>
-              {quizByDayId.has(day.id) ? <span>Includes quiz</span> : null}
+              <div className="module-day-card-top">
+                <span className="module-day-pill">Day {day.day}</span>
+                {day.completed ? <CheckCircle2 size={16} /> : null}
+              </div>
+              <h4>{day.title}</h4>
+              <p>{day.summary || "Open this lesson to read the brief and complete the task."}</p>
+              <div className="module-day-chip-row">
+                {day.videoUrl ? (
+                  <span>
+                    <PlayCircle size={13} />
+                    Video
+                  </span>
+                ) : null}
+                {day.questionCount > 0 ? (
+                  <span>
+                    <ClipboardCheck size={13} />
+                    {day.questionCount} Qs
+                  </span>
+                ) : null}
+                {day.totalPoints > 0 ? <span>{day.totalPoints} pts</span> : null}
+              </div>
+              <div className="module-day-footer">
+                <span>{day.task || "Open lesson brief"}</span>
+                <ArrowUpRight size={15} />
+              </div>
             </button>
-          );
-        })}
-      </div>
+          ))}
+
+          <a href="#module-final-task" className="module-assessment-card">
+            <div className="module-assessment-icon">
+              <ClipboardCheck size={18} />
+            </div>
+            <strong>Final Assessment</strong>
+            <span>
+              {module.assessment?.type === "project"
+                ? "Project brief"
+                : "Final quiz or capstone"}
+            </span>
+          </a>
+        </div>
+      </section>
+
+      <section id="module-final-task" className="module-final-task">
+        <div className="module-final-task-header">
+          <span className="module-badge">Final task</span>
+          <h3>
+            {module.assessment?.type === "project"
+              ? "Ship the capstone"
+              : "Wrap up the module"}
+          </h3>
+        </div>
+
+        <div className="module-final-task-body">
+          <Markdown source={finalTaskContent} />
+        </div>
+      </section>
 
       {openDay ? (
-        <div className="module-day-modal" onClick={() => setOpenDay(null)}>
-          <div
-            className="module-day-modal-panel"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <h2>
-              Day {openDay.day}: {openDay.title}
-            </h2>
-            <div className="module-markdown">
-              <ReactMarkdown>{openDay.contentMarkdown}</ReactMarkdown>
-            </div>
-
-            {openDay.videoUrl ? (
-              <p>
-                <a href={openDay.videoUrl} target="_blank" rel="noreferrer">
-                  Watch video
-                </a>
-              </p>
-            ) : null}
-
-            {openDayQuiz ? (
-              <div className="module-quiz-block">
-                <h3>Day quiz</h3>
-                {openDayQuiz.questions.map((question, questionIndex) => (
-                  <div key={questionIndex} className="module-quiz-question">
-                    <p>{question.question}</p>
-                    <div className="module-quiz-options">
-                      {question.options.map((option, optionIndex) => (
-                        <button
-                          key={optionIndex}
-                          type="button"
-                          className={
-                            answers[questionIndex] === optionIndex ? 'is-selected' : ''
-                          }
-                          onClick={() => {
-                            const next = [...answers];
-                            next[questionIndex] = optionIndex;
-                            setAnswers(next);
-                          }}
-                        >
-                          {option}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  className="module-btn module-btn-primary"
-                  disabled={submitting || answers.length !== openDayQuiz.questions.length}
-                  onClick={() => handleSubmitQuiz(openDayQuiz)}
-                >
-                  Submit quiz
-                </button>
-              </div>
-            ) : (
-              <button
-                type="button"
-                className="module-btn module-btn-primary"
-                disabled={!isRegistered || completedSet.has(openDay.id)}
-                onClick={() => handleCompleteDay(openDay)}
-              >
-                Mark day complete
-              </button>
-            )}
-
-            <button
-              type="button"
-              className="module-btn module-btn-secondary"
-              style={{ marginTop: '0.75rem' }}
-              onClick={() => setOpenDay(null)}
-            >
-              Close
-            </button>
-          </div>
-        </div>
+        <DayModal
+          chapter={{
+            ...openDay,
+            quiz: openDay.quiz?.questions || [],
+          }}
+          moduleTheme={module.theme}
+          isCompleted={completedSet.has(openDay.id)}
+          dailyScore={openDayScore}
+          dailyQuizAttempt={openDayAttempt}
+          userName={user?.username || "You"}
+          submitting={pendingDayId === openDay.id}
+          onClose={() => setOpenDay(null)}
+          onComplete={handleDayAction}
+        />
       ) : null}
     </div>
   );

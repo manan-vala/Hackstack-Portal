@@ -1,4 +1,4 @@
-import React from "react";
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -7,6 +7,7 @@ import {
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ModulesProvider } from "./context/ModulesContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { AppLayout } from "./components/AppLayout";
 import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
@@ -24,6 +25,12 @@ import Leaderboard from "../adminportal/leaderboard";
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
 
+  useEffect(() => {
+    if (!loading && !user) {
+      window.location.assign("/login.html");
+    }
+  }, [loading, user]);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-950 text-white flex justify-center items-center">
@@ -33,7 +40,6 @@ const ProtectedRoute = ({ children }) => {
   }
 
   if (!user) {
-    window.location.href = "/login.html";
     return null;
   }
 
@@ -50,82 +56,84 @@ const ProtectedApp = ({ children }) => (
 
 const App = () => {
   return (
-    <AuthProvider>
-      <AdminAuthProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/auth-callback" element={<AuthCallback />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <AdminAuthProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/auth-callback" element={<AuthCallback />} />
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedApp>
-                  <Dashboard />
-                </ProtectedApp>
-              }
-            />
-            <Route
-              path="/modules"
-              element={
-                <ProtectedApp>
-                  <ModuleCatalog />
-                </ProtectedApp>
-              }
-            />
-            <Route
-              path="/modules/:slug"
-              element={
-                <ProtectedApp>
-                  <ModuleDetail />
-                </ProtectedApp>
-              }
-            />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedApp>
+                    <Dashboard />
+                  </ProtectedApp>
+                }
+              />
+              <Route
+                path="/modules"
+                element={
+                  <ProtectedApp>
+                    <ModuleCatalog />
+                  </ProtectedApp>
+                }
+              />
+              <Route
+                path="/modules/:slug"
+                element={
+                  <ProtectedApp>
+                    <ModuleDetail />
+                  </ProtectedApp>
+                }
+              />
 
-            <Route
-              path="/admin"
-              element={<Navigate to="/admin/dashboard" replace />}
-            />
-            <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin"
+                element={<Navigate to="/admin/dashboard" replace />}
+              />
+              <Route path="/admin/login" element={<AdminLogin />} />
 
-            <Route
-              path="/admin/dashboard"
-              element={
-                <AdminProtectedRoute>
-                  <AdminDashboard />
-                </AdminProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/modules/create"
-              element={
-                <AdminProtectedRoute>
-                  <CreateModule />
-                </AdminProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/modules/edit/:id"
-              element={
-                <AdminProtectedRoute>
-                  <EditModule />
-                </AdminProtectedRoute>
-              }
-            />
-            <Route
-              path="/admin/leaderboard"
-              element={
-                <AdminProtectedRoute>
-                  <Leaderboard />
-                </AdminProtectedRoute>
-              }
-            />
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminDashboard />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/create"
+                element={
+                  <AdminProtectedRoute>
+                    <CreateModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/edit/:id"
+                element={
+                  <AdminProtectedRoute>
+                    <EditModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/leaderboard"
+                element={
+                  <AdminProtectedRoute>
+                    <Leaderboard />
+                  </AdminProtectedRoute>
+                }
+              />
 
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Router>
-      </AdminAuthProvider>
-    </AuthProvider>
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Router>
+        </AdminAuthProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 };
 

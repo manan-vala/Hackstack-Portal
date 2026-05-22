@@ -1,11 +1,16 @@
 const mongoose = require('mongoose');
 const Leaderboard = require('../models/Leaderboard');
+const Module = require('../models/Module');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
 const buildRankedResponse = (entries) =>
   entries.map((entry, index) => ({
     ...entry,
+    userId: entry.userId?.toString?.() || entry.userId,
+    moduleId: entry.moduleId?.toString?.() || entry.moduleId,
+    totalPoints: entry.totalPoints ?? entry.score ?? 0,
+    modulesCompleted: entry.modulesCompleted ?? 0,
     rank: entry.rank ?? index + 1
   }));
 
@@ -39,5 +44,23 @@ exports.getGlobalLeaderboard = async (req, res) => {
 };
 
 exports.getModuleLeaderboard = async (req, res) => {
-  return listLeaderboard(req, res, req.params.moduleId);
+  try {
+    const rawModuleId = req.params.moduleId;
+
+    if (isValidObjectId(rawModuleId)) {
+      return listLeaderboard(req, res, rawModuleId);
+    }
+
+    const moduleDoc = await Module.findOne({ slug: rawModuleId }).select('_id');
+    if (!moduleDoc) {
+      return res.status(404).json({ message: 'Module not found.' });
+    }
+
+    return listLeaderboard(req, res, moduleDoc._id.toString());
+  } catch (error) {
+    return res.status(500).json({
+      message: 'Failed to fetch leaderboard.',
+      error: error.message
+    });
+  }
 };
