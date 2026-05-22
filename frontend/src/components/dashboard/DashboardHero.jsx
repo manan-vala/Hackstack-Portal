@@ -6,7 +6,10 @@ export function DashboardHero({ username, summary }) {
       <div className="dashboard-orb dashboard-orb-b" />
       <div className="dashboard-hero-copy">
         <p className="dashboard-kicker">Learning dashboard</p>
-        <h1 className="dashboard-title">Welcome back, {username}</h1>
+        <h1 className="dashboard-title">
+          <span className="dashboard-title-line">Welcome back,</span>
+          <span className="dashboard-title-username">{username}</span>
+        </h1>
         <p className="dashboard-hero-text">Track quiz progress, module progress, quiz score, and how much of each module is complete.</p>
         <div className="dashboard-hero-chips">
           <span>{summary.registeredModules} modules enrolled</span>

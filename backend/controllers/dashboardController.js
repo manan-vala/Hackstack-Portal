@@ -1,127 +1,159 @@
-const Module = require('../models/Module');
+const User = require('../models/User');
 const Progress = require('../models/Progress');
 const Quiz = require('../models/Quiz');
 
-const toObjectIdString = (value) => String(value);
+const countModuleDays = (moduleDoc) => {
+  if (!moduleDoc?.chapters) return 0;
+  return moduleDoc.chapters.reduce(
+    (total, chapter) => total + (chapter.days?.length || 0),
+    0
+  );
+};
 
-const sumQuizPoints = (quizzes = []) => quizzes.reduce(
-  (total, quiz) => total + (quiz.questions || []).reduce((points, question) => points + Number(question.points || 0), 0),
-  0
-);
-
-const getTotalDays = (moduleDoc) => (moduleDoc.chapters || []).reduce(
-  (total, chapter) => total + (chapter.days || []).length,
-  0
-);
-
-const getQuizMaxScore = (quizDoc) => (quizDoc.questions || []).reduce(
-  (total, question) => total + Number(question.points || 0),
-  0
-);
-
-const toPlainId = (value) => String(value);
+const getQuizMaxScore = (quiz) =>
+  (quiz.questions || []).reduce((sum, question) => sum + (question.points || 0), 0);
 
 exports.getDashboard = async (req, res) => {
   try {
-    const user = typeof req.user.toObject === 'function' ? req.user.toObject() : req.user;
-    const registeredModuleIds = (user.registeredModules || []).map(toObjectIdString);
+    const user = await User.findById(req.user._id).populate('registeredModules');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
 
-    const [modules, progressRecords, quizzes] = await Promise.all([
-      registeredModuleIds.length ? Module.find({ _id: { $in: registeredModuleIds } }).sort({ createdAt: -1 }) : [],
-      Progress.find({ userId: req.user._id }),
-      registeredModuleIds.length ? Quiz.find({ moduleId: { $in: registeredModuleIds } }) : [],
+    const registeredModules = user.registeredModules || [];
+    const moduleIds = registeredModules.map((moduleDoc) => moduleDoc._id);
+
+    const [progressRecords, quizzes] = await Promise.all([
+      Progress.find({ userId: user._id }),
+      moduleIds.length
+        ? Quiz.find({ moduleId: { $in: moduleIds } })
+        : Promise.resolve([]),
     ]);
 
-    const progressByModule = new Map(progressRecords.map((record) => [toObjectIdString(record.moduleId), record]));
-    const quizzesByModule = quizzes.reduce((map, quiz) => {
-      const key = toObjectIdString(quiz.moduleId);
-      const bucket = map.get(key) || [];
-      bucket.push(quiz);
-      map.set(key, bucket);
-      return map;
-    }, new Map());
+    const progressByModule = new Map(
+      progressRecords.map((record) => [record.moduleId.toString(), record])
+    );
 
-    const moduleRows = modules.map((moduleDoc) => {
-      const moduleId = toObjectIdString(moduleDoc._id);
-      const progressRecord = progressByModule.get(moduleId);
+    const quizzesByModule = new Map();
+    for (const quiz of quizzes) {
+      const key = quiz.moduleId.toString();
+      if (!quizzesByModule.has(key)) quizzesByModule.set(key, []);
+      quizzesByModule.get(key).push(quiz);
+    }
+
+    let totalDays = 0;
+    let completedDays = 0;
+    let totalQuizzes = 0;
+    let totalQuizAttempts = 0;
+    let totalQuizScore = 0;
+    let completedModules = 0;
+    let completionSum = 0;
+
+    const modules = registeredModules.map((moduleDoc) => {
+      const moduleId = moduleDoc._id.toString();
+      const progress = progressByModule.get(moduleId);
       const moduleQuizzes = quizzesByModule.get(moduleId) || [];
-      const quizScoreByDayId = new Map(
-        (progressRecord?.quizScores || []).map((item) => [toPlainId(item.dayId), item])
-      );
-      const completedDays = progressRecord?.completedDays?.length || progressRecord?.completedChapters?.length || 0;
-      const totalDays = getTotalDays(moduleDoc);
-      const completionPercent = progressRecord?.moduleCompleted
-        ? 100
-        : totalDays > 0
-          ? Math.round((Math.min(completedDays, totalDays) / totalDays) * 100)
+
+      const moduleTotalDays = countModuleDays(moduleDoc);
+      const moduleCompletedDays = progress?.completedDays?.length || 0;
+      const completionPercent =
+        moduleTotalDays > 0
+          ? Math.round((moduleCompletedDays / moduleTotalDays) * 100)
           : 0;
 
-      const attemptedQuizCount = progressRecord?.attemptedQuizIds?.length || 0;
-      const quizScore = progressRecord?.quizScores?.reduce((total, item) => total + Number(item.score || 0), 0) || 0;
-      const totalQuizScore = sumQuizPoints(moduleQuizzes);
-      const quizProgressPercent = moduleQuizzes.length > 0 ? Math.round((attemptedQuizCount / moduleQuizzes.length) * 100) : 0;
-      const quizResults = moduleQuizzes
-        .sort((left, right) => new Date(left.createdAt || 0) - new Date(right.createdAt || 0))
-        .map((quizDoc, index) => {
-          const scoreRecord = quizScoreByDayId.get(toPlainId(quizDoc.dayId));
-          const maxScore = getQuizMaxScore(quizDoc);
-          const score = Number(scoreRecord?.score || 0);
+      if (progress?.moduleCompleted) completedModules += 1;
 
-          return {
-            id: toPlainId(quizDoc._id),
-            dayId: toPlainId(quizDoc.dayId),
-            label: `Quiz ${index + 1}`,
-            attempted: Boolean(scoreRecord),
-            score,
-            maxScore,
-            percentage: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0,
-            questionCount: (quizDoc.questions || []).length,
-          };
-        });
+      totalDays += moduleTotalDays;
+      completedDays += moduleCompletedDays;
+      totalQuizzes += moduleQuizzes.length;
+
+      const attemptedSet = new Set(
+        (progress?.attemptedQuizIds || []).map((id) => id.toString())
+      );
+      const scoreByDay = new Map(
+        (progress?.quizScores || []).map((entry) => [
+          entry.dayId?.toString(),
+          entry.score,
+        ])
+      );
+
+      let moduleQuizScore = 0;
+      let moduleQuizMax = 0;
+
+      const quizResults = moduleQuizzes.map((quiz, index) => {
+        const maxScore = getQuizMaxScore(quiz);
+        const attempted = attemptedSet.has(quiz._id.toString());
+        const score = attempted
+          ? scoreByDay.get(quiz.dayId?.toString()) ?? 0
+          : 0;
+
+        if (attempted) {
+          moduleQuizScore += score;
+        }
+        moduleQuizMax += maxScore;
+
+        return {
+          id: quiz._id,
+          label: `Quiz ${index + 1}`,
+          attempted,
+          score,
+          maxScore,
+          questionCount: quiz.questions?.length || 0,
+          percentage: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0,
+        };
+      });
+
+      const attemptedQuizzes = quizResults.filter((quiz) => quiz.attempted).length;
+      totalQuizAttempts += attemptedQuizzes;
+      totalQuizScore += moduleQuizScore;
+
+      const quizProgressPercent =
+        moduleQuizzes.length > 0
+          ? Math.round((attemptedQuizzes / moduleQuizzes.length) * 100)
+          : 0;
+
+      completionSum += completionPercent;
 
       return {
         id: moduleId,
-        slug: moduleDoc.slug,
         title: moduleDoc.title,
         description: moduleDoc.description,
-        difficulty: moduleDoc.difficulty,
-        totalDays,
-        completedDays,
+        difficulty: moduleDoc.difficulty || 'Module',
+        totalDays: moduleTotalDays,
+        completedDays: moduleCompletedDays,
         completionPercent,
         totalQuizzes: moduleQuizzes.length,
-        attemptedQuizzes: attemptedQuizCount,
+        attemptedQuizzes,
         quizProgressPercent,
-        quizScore,
-        totalQuizScore,
+        quizScore: moduleQuizScore,
+        totalQuizScore: moduleQuizMax,
+        progressUpdatedAt: progress?.updatedAt || null,
         quizResults,
-        progressUpdatedAt: progressRecord?.updatedAt || null,
       };
     });
 
-    const summary = {
-      registeredModules: modules.length,
-      completedModules: moduleRows.filter((module) => module.completionPercent === 100).length,
-      averageCompletion: moduleRows.length
-        ? Math.round(moduleRows.reduce((total, module) => total + module.completionPercent, 0) / moduleRows.length)
-        : 0,
-      totalQuizScore: user.totalScore || 0,
-      totalQuizAttempts: moduleRows.reduce((total, module) => total + module.attemptedQuizzes, 0),
-      totalQuizzes: moduleRows.reduce((total, module) => total + module.totalQuizzes, 0),
-      completedDays: moduleRows.reduce((total, module) => total + module.completedDays, 0),
-      totalDays: moduleRows.reduce((total, module) => total + module.totalDays, 0),
-    };
+    const registeredCount = registeredModules.length;
+    const averageCompletion =
+      registeredCount > 0 ? Math.round(completionSum / registeredCount) : 0;
 
     res.json({
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        avatarUrl: user.avatarUrl,
+      user: { username: user.username },
+      summary: {
+        registeredModules: registeredCount,
+        completedModules,
+        averageCompletion,
+        totalQuizScore,
+        totalQuizAttempts,
+        totalQuizzes,
+        completedDays,
+        totalDays,
       },
-      summary,
-      modules: moduleRows,
+      modules,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to load dashboard data.', error: error.message });
+    res.status(500).json({
+      message: 'Failed to load dashboard.',
+      error: error.message,
+    });
   }
 };
