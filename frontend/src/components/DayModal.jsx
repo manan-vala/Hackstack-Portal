@@ -73,10 +73,10 @@ function DailyQuiz({
   const quizAlreadyTaken = Boolean(dailyQuizAttempt);
   const totalMarks = useMemo(
     () => questions.reduce((sum, question) => sum + question.points, 0),
-    [questions]
+    [questions],
   );
   const [viewMode, setViewMode] = useState(
-    quizAlreadyTaken ? "results" : "start"
+    quizAlreadyTaken ? "results" : "start",
   );
 
   const scoreFromAnswers = answers.reduce((sum, answer, index) => {
@@ -85,13 +85,12 @@ function DailyQuiz({
     return answer === question.correctIndex ? sum + question.points : sum;
   }, 0);
 
-  const resultPayload =
-    dailyQuizAttempt || {
-      score: scoreFromAnswers,
-      totalMarks,
-      userAnswers: answers,
-      attemptedAt: new Date().toISOString(),
-    };
+  const resultPayload = dailyQuizAttempt || {
+    score: scoreFromAnswers,
+    totalMarks,
+    userAnswers: answers,
+    attemptedAt: new Date().toISOString(),
+  };
 
   const handleAnswer = async (optionIndex) => {
     const nextAnswers = [...answers];
@@ -129,7 +128,9 @@ function DailyQuiz({
         <div className="mb-1 text-white">
           {questions.length} question{questions.length !== 1 ? "s" : ""}
         </div>
-        <div className="mb-6 text-sm text-slate-400">{totalMarks} pts total</div>
+        <div className="mb-6 text-sm text-slate-400">
+          {totalMarks} pts total
+        </div>
         <button
           type="button"
           disabled={quizAlreadyTaken || submitting}
@@ -158,7 +159,8 @@ function DailyQuiz({
         <div className="border-b border-white/10 py-6 text-center">
           {userName ? (
             <div className="mb-3 text-xs text-slate-500">
-              Results for <span className="font-medium text-white">{userName}</span>
+              Results for{" "}
+              <span className="font-medium text-white">{userName}</span>
             </div>
           ) : null}
           <div className="mx-auto mb-4 grid size-16 place-items-center rounded-full bg-indigo-500/20">
@@ -172,8 +174,8 @@ function DailyQuiz({
           resultPayload.score > previousScore &&
           !dailyQuizAttempt ? (
             <div className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1.5 text-sm text-emerald-300">
-              <Zap className="size-3.5" />
-              +{resultPayload.score - previousScore} pts earned
+              <Zap className="size-3.5" />+{resultPayload.score - previousScore}{" "}
+              pts earned
             </div>
           ) : null}
         </div>
@@ -428,8 +430,8 @@ function DayModal({
                     <div>
                       <div className="text-white">Ready to test yourself?</div>
                       <div className="mt-0.5 text-sm text-slate-300">
-                        {chapter.quiz.length} questions. Completing the quiz will
-                        mark this day done.
+                        {chapter.quiz.length} questions. Completing the quiz
+                        will mark this day done.
                       </div>
                     </div>
                     <button
@@ -476,15 +478,21 @@ function DayModal({
                     ) : null}
                   </div>
 
-                  <DailyQuiz
-                    questions={chapter.quiz}
-                    onSubmit={handleQuizSubmit}
-                    previousScore={dailyScore}
-                    dailyQuizAttempt={dailyQuizAttempt}
-                    submitting={submitting}
-                    userName={userName}
-                    moduleTheme={moduleTheme}
-                  />
+                  {hasQuiz ? (
+                    <DailyQuiz
+                      questions={chapter.quiz}
+                      onSubmit={handleQuizSubmit}
+                      previousScore={dailyScore}
+                      dailyQuizAttempt={dailyQuizAttempt}
+                      submitting={submitting}
+                      userName={userName}
+                      moduleTheme={moduleTheme}
+                    />
+                  ) : (
+                    <div className="p-6 text-center text-slate-400">
+                      No quiz questions found for this day.
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

@@ -35,7 +35,7 @@ function ModuleDetail() {
 
   const module = useMemo(
     () => modules.find((entry) => entry.slug === slug),
-    [modules, slug]
+    [modules, slug],
   );
 
   const [openDay, setOpenDay] = useState(null);
@@ -45,7 +45,9 @@ function ModuleDetail() {
   if (loading) {
     return (
       <div className="modules-shell">
-        <div className="modules-panel modules-empty-state">Loading module...</div>
+        <div className="modules-panel modules-empty-state">
+          Loading module...
+        </div>
       </div>
     );
   }
@@ -65,27 +67,70 @@ function ModuleDetail() {
   }
 
   const isRegistered = registeredModuleIds.includes(module.id);
+  const moduleDays = module.days || [];
   const progress = getProgressForModule(module.id);
   const completedSet = new Set(
-    (progress?.completedDays || []).map((id) => id.toString())
+    (progress?.completedDays || []).map((id) => id.toString()),
   );
-  const scoreByDayId = new Map(
-    (progress?.quizScores || []).map((entry) => [entry.dayId?.toString(), entry.score])
+  const scoreByQuizDayId = new Map(
+    (progress?.quizScores || []).map((entry) => [
+      entry.dayId?.toString(),
+      entry.score,
+    ]),
   );
   const attemptedQuizIds = new Set(
-    (progress?.attemptedQuizIds || []).map((id) => id.toString())
+    (progress?.attemptedQuizIds || []).map((id) => id.toString()),
   );
-  const moduleQuizzes = getQuizzesForModule(module.id);
-  const quizByDayId = new Map(
-    moduleQuizzes.map((quiz) => [quiz.dayId?.toString(), quiz])
+  const moduleQuizzes = useMemo(
+    () =>
+      [...getQuizzesForModule(module.id)].sort((left, right) => {
+        const leftTime = left?.createdAt ? new Date(left.createdAt).getTime() : 0;
+        const rightTime = right?.createdAt
+          ? new Date(right.createdAt).getTime()
+          : 0;
+        return leftTime - rightTime;
+      }),
+    [getQuizzesForModule, module.id],
   );
 
-  const enrichedDays = module.days.map((day, index) => {
-    const quiz = quizByDayId.get(day.id);
-    const questionCount = quiz?.questions?.length || 0;
-    const totalPoints =
-      quiz?.questions?.reduce((sum, question) => sum + question.points, 0) || 0;
-    const previousDay = module.days[index - 1];
+  const resolvedQuizByDayId = useMemo(() => {
+    const exactMatches = new Map();
+    const unmatchedQuizzes = [];
+    const moduleDayIds = new Set(moduleDays.map((day) => day.id).filter(Boolean));
+
+    for (const quiz of moduleQuizzes) {
+      const quizDayId = quiz.dayId?.toString();
+
+      if (quizDayId && moduleDayIds.has(quizDayId)) {
+        exactMatches.set(quizDayId, quiz);
+      } else {
+        unmatchedQuizzes.push(quiz);
+      }
+    }
+
+    const resolved = new Map();
+    let fallbackIndex = 0;
+
+    for (const day of moduleDays) {
+      const exactQuiz = exactMatches.get(day.id);
+
+      if (exactQuiz) {
+        resolved.set(day.id, exactQuiz);
+        continue;
+      }
+
+      if (fallbackIndex < unmatchedQuizzes.length) {
+        resolved.set(day.id, unmatchedQuizzes[fallbackIndex]);
+        fallbackIndex += 1;
+      }
+    }
+
+    return resolved;
+  }, [moduleDays, moduleQuizzes]);
+
+  const enrichedDays = moduleDays.map((day, index) => {
+    const quiz = resolvedQuizByDayId.get(day.id) || null;
+    const previousDay = moduleDays[index - 1];
     const completed = completedSet.has(day.id);
     const locked =
       !isRegistered ||
@@ -94,8 +139,10 @@ function ModuleDetail() {
     return {
       ...day,
       quiz,
-      questionCount,
-      totalPoints,
+      questionCount: quiz?.questions?.length || 0,
+      totalPoints:
+        quiz?.questions?.reduce((sum, question) => sum + (question.points || 0), 0) ||
+        0,
       completed,
       locked,
       summary: extractMarkdownSummary(day.contentMarkdown),
@@ -115,7 +162,7 @@ function ModuleDetail() {
   const handleDayAction = async (dayId, _score, userAnswers) => {
     if (!isRegistered) return;
 
-    const quiz = quizByDayId.get(dayId);
+    const quiz = resolvedQuizByDayId.get(dayId);
     setActionError("");
     setPendingDayId(dayId);
 
@@ -132,17 +179,21 @@ function ModuleDetail() {
     }
   };
 
-  const openDayQuiz = openDay ? quizByDayId.get(openDay.id) : null;
-  const openDayScore = openDay ? scoreByDayId.get(openDay.id) : undefined;
+  const openDayQuiz = openDay ? resolvedQuizByDayId.get(openDay.id) : null;
+  const quizQuestions = openDayQuiz?.questions || [];
+  const openDayScore = openDayQuiz
+    ? scoreByQuizDayId.get(openDayQuiz.dayId?.toString())
+    : undefined;
   const openDayAttempt =
     openDay && openDayQuiz
-      ? attemptedQuizIds.has(openDayQuiz._id?.toString()) || scoreByDayId.has(openDay.id)
+      ? attemptedQuizIds.has(openDayQuiz._id?.toString()) ||
+        scoreByQuizDayId.has(openDayQuiz.dayId?.toString())
         ? {
             score: openDayScore ?? 0,
             totalMarks:
               openDayQuiz.questions?.reduce(
                 (sum, question) => sum + question.points,
-                0
+                0,
               ) || 0,
           }
         : null
@@ -202,15 +253,17 @@ function ModuleDetail() {
         </div>
       </header>
 
-      {error ? <div className="modules-alert modules-alert-danger">{error}</div> : null}
+      {error ? (
+        <div className="modules-alert modules-alert-danger">{error}</div>
+      ) : null}
       {actionError ? (
         <div className="modules-alert modules-alert-danger">{actionError}</div>
       ) : null}
 
       {!isRegistered ? (
         <div className="modules-alert modules-alert-warning">
-          You are not enrolled in this module yet. Head back to the module catalog
-          and register first.
+          You are not enrolled in this module yet. Head back to the module
+          catalog and register first.
         </div>
       ) : null}
 
@@ -252,7 +305,10 @@ function ModuleDetail() {
                 {day.completed ? <CheckCircle2 size={16} /> : null}
               </div>
               <h4>{day.title}</h4>
-              <p>{day.summary || "Open this lesson to read the brief and complete the task."}</p>
+              <p>
+                {day.summary ||
+                  "Open this lesson to read the brief and complete the task."}
+              </p>
               <div className="module-day-chip-row">
                 {day.videoUrl ? (
                   <span>
@@ -266,7 +322,9 @@ function ModuleDetail() {
                     {day.questionCount} Qs
                   </span>
                 ) : null}
-                {day.totalPoints > 0 ? <span>{day.totalPoints} pts</span> : null}
+                {day.totalPoints > 0 ? (
+                  <span>{day.totalPoints} pts</span>
+                ) : null}
               </div>
               <div className="module-day-footer">
                 <span>{day.task || "Open lesson brief"}</span>
@@ -308,7 +366,7 @@ function ModuleDetail() {
         <DayModal
           chapter={{
             ...openDay,
-            quiz: openDay.quiz?.questions || [],
+            quiz: quizQuestions,
           }}
           moduleTheme={module.theme}
           isCompleted={completedSet.has(openDay.id)}
