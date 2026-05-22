@@ -98,11 +98,36 @@
   margin-bottom: 12px;
 }
 
-.dashboard-title {
+.dashboard-shell h1,
+.dashboard-shell h2 {
+  margin: 0;
   color: #f8fafc;
+  line-height: 1.1;
+}
+
+.dashboard-title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.12em;
   margin: 0 0 12px;
   font-size: clamp(2rem, 4vw, 3.6rem);
+  font-weight: 600;
   letter-spacing: -0.04em;
+  line-height: 1.15;
+  word-break: break-word;
+}
+
+.dashboard-title-line {
+  font-size: 0.62em;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #e2e8f0;
+  line-height: 1.2;
+}
+
+.dashboard-title-username {
+  line-height: 1.1;
+  color: #f8fafc;
 }
 
 .dashboard-hero-text {

@@ -32,8 +32,14 @@ export const AuthProvider = ({ children }) => {
     // Cookie will be cleared by backend logout endpoint
   };
 
+  const refreshUser = async () => {
+    const userData = await authService.getCurrentUser();
+    setUser(userData);
+    return userData;
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

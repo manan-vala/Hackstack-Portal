@@ -3,6 +3,18 @@ const Progress = require('../models/Progress');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
+exports.getMyProgress = async (req, res) => {
+  try {
+    const progress = await Progress.find({ userId: req.user._id })
+      .populate('moduleId', 'title slug difficulty')
+      .sort({ updatedAt: -1 });
+
+    res.json(progress);
+  } catch (error) {
+    res.status(500).json({ message: 'Failed to fetch your progress.', error: error.message });
+  }
+};
+
 exports.listProgress = async (req, res) => {
   try {
     const progress = await Progress.find()

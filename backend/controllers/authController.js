@@ -131,5 +131,13 @@ exports.handleGitHubCallback = async (req, res) => {
 };
 
 exports.getMe = async (req, res) => {
-  res.json(req.user);
+  const user = await User.findById(req.user._id)
+    .populate('registeredModules', 'title slug difficulty')
+    .select('-githubId');
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found.' });
+  }
+
+  res.json(user);
 };

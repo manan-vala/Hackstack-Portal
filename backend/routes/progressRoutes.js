@@ -5,6 +5,9 @@ const progressCtrl = require('../controllers/progressController');
 
 const router = express.Router();
 
+// GET /progress/me -> Current user's progress records.
+router.get('/me', auth, progressCtrl.getMyProgress);
+
 // GET /progress -> List all progress records (consider adding auth).
 router.get('/', progressCtrl.listProgress);
 
