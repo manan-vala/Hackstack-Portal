@@ -3,9 +3,20 @@
 // Shows two action cards: Create a Module, Edit a Module.
 // Each card navigates to its respective route (blank pages for now).
 
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAdminAuth } from "./admin-auth-context";
+import {
+  getAdminStats,
+  fetchModulesPublic,
+  fetchQuizzesPublic,
+  mockGetAdminStats,
+  mockFetchModulesPublic,
+  mockFetchQuizzesPublic,
+} from "./admin-api";
+
+const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 const ACTIONS = [
   {
@@ -82,11 +93,89 @@ const ACTIONS = [
     badge: "Danger",
     badgeColor: "bg-red-900/60 text-red-300 border border-red-700",
   },
+  {
+    key: "users",
+    path: "/admin/users",
+    icon: (
+      <svg
+        className="w-7 h-7"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        strokeWidth={1.8}
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+        />
+      </svg>
+    ),
+    iconBg: "bg-amber-500/15 text-amber-400",
+    border: "hover:border-amber-500/60",
+    title: "User Info & Progress",
+    description:
+      "View registered users, see which modules they are working on, completed days, and their quiz scores.",
+    badge: "Users",
+    badgeColor: "bg-amber-900/60 text-amber-300 border border-amber-700",
+  },
 ];
 
 export default function AdminDashboard() {
   const { admin, logout } = useAdminAuth();
   const navigate = useNavigate();
+
+  const [stats, setStats] = useState({
+    totalUsers: "—",
+    totalModules: "—",
+    activeQuizzes: "—",
+  });
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadStats() {
+      try {
+        const statsCaller = USE_MOCK ? mockGetAdminStats : getAdminStats;
+        const modulesCaller = USE_MOCK ? mockFetchModulesPublic : fetchModulesPublic;
+        const quizzesCaller = USE_MOCK ? mockFetchQuizzesPublic : fetchQuizzesPublic;
+
+        const [statsData, modulesData, quizzesData] = await Promise.all([
+          statsCaller().catch((err) => {
+            console.error("Error loading users stats:", err);
+            return { totalUsers: "—" };
+          }),
+          modulesCaller().catch((err) => {
+            console.error("Error loading modules:", err);
+            return [];
+          }),
+          quizzesCaller().catch((err) => {
+            console.error("Error loading quizzes:", err);
+            return [];
+          }),
+        ]);
+
+        if (active) {
+          setStats({
+            totalUsers: statsData?.totalUsers !== undefined ? statsData.totalUsers : "—",
+            totalModules: Array.isArray(modulesData) ? modulesData.length : "—",
+            activeQuizzes: Array.isArray(quizzesData) ? quizzesData.length : "—",
+          });
+        }
+      } catch (err) {
+        console.error("Error loading dashboard stats:", err);
+      }
+    }
+
+    loadStats();
+
+    const interval = setInterval(loadStats, 60000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -118,7 +207,7 @@ export default function AdminDashboard() {
               <h1 className="text-white font-bold text-lg leading-tight tracking-tight">
                 Hackstack Admin
               </h1>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-400 text-xs">
                 Signed in as{" "}
                 <span className="text-gray-300">{admin?.username}</span>
               </p>
@@ -197,7 +286,7 @@ export default function AdminDashboard() {
               </p>
 
               {/* Arrow */}
-              <div className="flex items-center gap-1 mt-5 text-gray-500 group-hover:text-indigo-400 transition-colors text-sm font-medium">
+              <div className="flex items-center gap-1 mt-5 text-gray-400 group-hover:text-indigo-400 transition-colors text-sm font-medium">
                 Go to page
                 <svg
                   className="w-4 h-4 group-hover:translate-x-1 transition-transform"
@@ -225,14 +314,14 @@ export default function AdminDashboard() {
           className="mt-8 grid grid-cols-3 divide-x divide-gray-800 bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden"
         >
           {[
-            { label: "Total Users", value: "—", note: "from /api/admin/stats" },
-            { label: "Total Modules", value: "—", note: "from /api/modules" },
-            { label: "Active Quizzes", value: "—", note: "from /api/quizzes" },
+            { label: "Total Users", value: stats.totalUsers, note: "from /api/admin/stats" },
+            { label: "Total Modules", value: stats.totalModules, note: "from /api/modules" },
+            { label: "Active Quizzes", value: stats.activeQuizzes, note: "from /api/quizzes" },
           ].map((stat) => (
             <div key={stat.label} className="px-5 py-4 text-center">
               <p className="text-xl font-bold text-white">{stat.value}</p>
               <p className="text-xs text-gray-400 mt-0.5">{stat.label}</p>
-              <p className="text-[10px] text-gray-600 mt-0.5">{stat.note}</p>
+              <p className="text-[10px] text-gray-400 mt-0.5">{stat.note}</p>
             </div>
           ))}
         </motion.div>

@@ -152,3 +152,100 @@ export async function mockAdminLogin({ username, password }) {
   }
   throw new Error("Invalid credentials");
 }
+
+export async function getAdminStats() {
+  const res = await fetch(`${BASE_URL}/admin/stats`, {
+    credentials: "include",
+    headers: getAdminHeaders(),
+  });
+  return parseJsonResponse(res, "Failed to load admin stats");
+}
+
+export async function fetchModulesPublic() {
+  const res = await fetch(`${BASE_URL}/modules`, {
+    credentials: "include",
+  });
+  return parseJsonResponse(res, "Failed to load modules");
+}
+
+export async function fetchQuizzesPublic() {
+  const res = await fetch(`${BASE_URL}/quizzes`, {
+    credentials: "include",
+  });
+  return parseJsonResponse(res, "Failed to load quizzes");
+}
+
+export async function mockGetAdminStats() {
+  await new Promise((r) => setTimeout(r, 300));
+  return {
+    totalUsers: 8,
+    totalModules: 3,
+    activeQuizzes: 5,
+  };
+}
+
+export async function mockFetchModulesPublic() {
+  await new Promise((r) => setTimeout(r, 300));
+  return [{}, {}, {}];
+}
+
+export async function mockFetchQuizzesPublic() {
+  await new Promise((r) => setTimeout(r, 300));
+  return [{}, {}, {}, {}, {}];
+}
+
+export async function getAdminUsersProgress() {
+  const res = await fetch(`${BASE_URL}/admin/users-progress`, {
+    credentials: "include",
+    headers: getAdminHeaders(),
+  });
+  return parseJsonResponse(res, "Failed to load users progress");
+}
+
+export async function mockGetAdminUsersProgress() {
+  await new Promise((r) => setTimeout(r, 400));
+  return [
+    {
+      _id: "u1",
+      username: "john_doe",
+      email: "john@example.com",
+      avatarUrl: "",
+      totalScore: 180,
+      modulesProgress: [
+        {
+          moduleId: "m1",
+          title: "Introduction to Javascript",
+          slug: "intro-js",
+          daysCompleted: 5,
+          totalDays: 10,
+          moduleScore: 120,
+        },
+        {
+          moduleId: "m2",
+          title: "Advanced React",
+          slug: "adv-react",
+          daysCompleted: 2,
+          totalDays: 5,
+          moduleScore: 60,
+        },
+      ],
+    },
+    {
+      _id: "u2",
+      username: "alice_smith",
+      email: "alice@example.com",
+      avatarUrl: "",
+      totalScore: 90,
+      modulesProgress: [
+        {
+          moduleId: "m1",
+          title: "Introduction to Javascript",
+          slug: "intro-js",
+          daysCompleted: 3,
+          totalDays: 10,
+          moduleScore: 90,
+        },
+      ],
+    },
+  ];
+}
