@@ -45,9 +45,9 @@ export default function AdminLogin() {
           localStorage.setItem("admin_login_redirect", "true");
           window.location.assign("/api/auth/github");
         } else if (data.forbidden) {
-          setDeniedMessage(data.message || "Your GitHub account is not authorized to access the admin portal.");
-          setAccessDenied(true);
-          setChecking(false);
+          localStorage.removeItem("jwt");
+          localStorage.removeItem("adminUser");
+          window.location.assign("/login.html");
         } else {
           setChecking(false);
         }

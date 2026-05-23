@@ -42,6 +42,11 @@ async function parseJsonResponse(res, fallbackMessage) {
   const data = await res.json().catch(() => ({}));
 
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("adminUser");
+      window.location.href = "/login.html";
+    }
     throw new Error(data.message || fallbackMessage);
   }
 
