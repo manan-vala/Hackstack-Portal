@@ -134,6 +134,8 @@ exports.handleGitHubCallback = async (req, res) => {
 };
 
 exports.getMe = async (req, res) => {
+  // Admin portal is fully decoupled from GitHub OAuth and has no User record.
+  // Regular GitHub users never carry isAdmin, so no check is needed here.
   const user = await User.findById(req.user._id)
     .populate('registeredModules', 'title slug difficulty')
     .select('-githubId');
@@ -145,7 +147,18 @@ exports.getMe = async (req, res) => {
   res.json(user);
 };
 
-exports.adminLogin = async (req, res) => {
+exports.logout = (req, res) => {
+  const isProd = process.env.NODE_ENV === 'production';
+  res.clearCookie('token', {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? 'none' : 'lax',
+    path: '/',
+  });
+  res.json({ message: 'Logged out successfully.' });
+};
+
+exports.adminLogin = (req, res) => {
   const { username, password } = req.body || {};
 
   if (!username || !password) {
@@ -156,49 +169,19 @@ exports.adminLogin = async (req, res) => {
     return res.status(401).json({ message: 'Invalid admin credentials.' });
   }
 
-  try {
-    let user = await User.findOne({ username });
+  // Admin auth is entirely credential-based — no MongoDB User record is
+  // created or queried. The admin portal is fully decoupled from GitHub OAuth.
+  const token = jwt.sign(
+    { isAdmin: true, username },
+    process.env.JWT_SECRET,
+    { expiresIn: '30d' },
+  );
 
-    if (user && !user.isAdmin) {
-      return res.status(403).json({ message: 'Admin access required.' });
-    }
-
-    if (!user) {
-      user = await User.create({
-        githubId: `admin:${username}`,
-        username,
-        email: `${username}@admin.local`,
-        avatarUrl: '',
-        isAdmin: true,
-      });
-    }
-
-    const token = jwt.sign(
-      { id: user._id, isAdmin: true },
-      process.env.JWT_SECRET,
-      { expiresIn: '30d' },
-    );
-
-    const isProd = process.env.NODE_ENV === 'production';
-
-    res.cookie('token', token, {
-      httpOnly: true,
-      secure: isProd,
-      sameSite: isProd ? 'none' : 'lax',
-      maxAge: 30 * 24 * 60 * 60 * 1000,
-      path: '/',
-    });
-
-    return res.json({
-      token,
-      user: {
-        _id: user._id,
-        username: user.username,
-        avatarUrl: user.avatarUrl || '',
-        isAdmin: true,
-      },
-    });
-  } catch (error) {
-    return res.status(500).json({ message: 'Admin authentication failed.' });
-  }
+  // Token is returned in the JSON body only (NOT set as a cookie).
+  // The admin portal stores it in localStorage and sends it as a Bearer header,
+  // keeping it completely isolated from the user frontend's HttpOnly cookie.
+  return res.json({
+    token,
+    user: { username, isAdmin: true },
+  });
 };

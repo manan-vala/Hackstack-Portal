@@ -1,6 +1,6 @@
-// src/components/admin/AdminProtectedRoute.jsx
+// AdminProtectedRoute
 // Wraps any admin page. Redirects to /admin/login if not authenticated.
-// Uses isAdmin flag from the JWT payload (set by your backend).
+// Admin auth is purely credential-based (username + password) — no GitHub, no isAdmin DB flag.
 
 import { Navigate } from "react-router-dom";
 import { useAdminAuth } from "./admin-auth-context";
@@ -18,7 +18,7 @@ export default function AdminProtectedRoute({ children }) {
     );
   }
 
-  if (!admin || !admin.isAdmin) {
+  if (!admin) {
     return <Navigate to="/admin/login" replace />;
   }
 

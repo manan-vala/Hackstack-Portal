@@ -27,9 +27,10 @@ export const AuthProvider = ({ children }) => {
     setUser(userData);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Clear the HttpOnly cookie on the server side first
+    await authService.logout();
     setUser(null);
-    // Cookie will be cleared by backend logout endpoint
   };
 
   const refreshUser = async () => {
@@ -46,3 +47,4 @@ export const AuthProvider = ({ children }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
+

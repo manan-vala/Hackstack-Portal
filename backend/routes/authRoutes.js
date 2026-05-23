@@ -15,4 +15,9 @@ router.get('/me', (req, res, next) => {
   next();
 }, auth, authCtrl.getMe);
 
+// Clears the HttpOnly session cookie — works even without a valid token
+router.post('/logout', authCtrl.logout);
+router.get('/logout', authCtrl.logout);
+
 module.exports = router;
+

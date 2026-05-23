@@ -1,6 +1,7 @@
 const express = require('express');
-const auth = require('../middleware/authMiddleware');
-const admin = require('../middleware/adminMiddleware');
+// adminAuth: reads ONLY from Authorization: Bearer header (never cookies).
+// This guarantees admin sessions cannot bleed into the user frontend.
+const adminAuth = require('../middleware/adminAuthMiddleware');
 
 const modulesCtrl = require('../controllers/moduleController');
 const quizzesCtrl = require('../controllers/quizController');
@@ -10,28 +11,28 @@ const usersCtrl = require('../controllers/userController');
 const router = express.Router();
 
 // Admin modules routes
-router.get('/modules', auth, admin, modulesCtrl.listModules);
-router.get('/modules/:id', auth, admin, modulesCtrl.getModule);
-router.post('/modules', auth, admin, modulesCtrl.createModule);
-router.put('/modules/:id', auth, admin, modulesCtrl.updateModule);
-router.delete('/modules/:id', auth, admin, modulesCtrl.deleteModule);
+router.get('/modules', adminAuth, modulesCtrl.listModules);
+router.get('/modules/:id', adminAuth, modulesCtrl.getModule);
+router.post('/modules', adminAuth, modulesCtrl.createModule);
+router.put('/modules/:id', adminAuth, modulesCtrl.updateModule);
+router.delete('/modules/:id', adminAuth, modulesCtrl.deleteModule);
 
 // Admin quizzes routes
-router.get('/quizzes', auth, admin, quizzesCtrl.listQuizzes);
-router.get('/quizzes/:id', auth, admin, quizzesCtrl.getQuiz);
-router.post('/quizzes', auth, admin, quizzesCtrl.createQuiz);
-router.patch('/quizzes/:id', auth, admin, quizzesCtrl.updateQuiz);
-router.delete('/quizzes/:id', auth, admin, quizzesCtrl.deleteQuiz);
+router.get('/quizzes', adminAuth, quizzesCtrl.listQuizzes);
+router.get('/quizzes/:id', adminAuth, quizzesCtrl.getQuiz);
+router.post('/quizzes', adminAuth, quizzesCtrl.createQuiz);
+router.patch('/quizzes/:id', adminAuth, quizzesCtrl.updateQuiz);
+router.delete('/quizzes/:id', adminAuth, quizzesCtrl.deleteQuiz);
 
 // Admin progress routes
-router.get('/progress', auth, admin, progressCtrl.listProgress);
-router.get('/progress/:id', auth, admin, progressCtrl.getProgress);
-router.patch('/progress/:id', auth, admin, progressCtrl.updateProgress);
+router.get('/progress', adminAuth, progressCtrl.listProgress);
+router.get('/progress/:id', adminAuth, progressCtrl.getProgress);
+router.patch('/progress/:id', adminAuth, progressCtrl.updateProgress);
 
 // Admin users routes
-router.get('/users', auth, admin, usersCtrl.listUsers);
-router.get('/users/:id', auth, admin, usersCtrl.getUser);
-router.patch('/users/:id', auth, admin, usersCtrl.updateUser);
-router.delete('/users/:id', auth, admin, usersCtrl.deleteUser);
+router.get('/users', adminAuth, usersCtrl.listUsers);
+router.get('/users/:id', adminAuth, usersCtrl.getUser);
+router.patch('/users/:id', adminAuth, usersCtrl.updateUser);
+router.delete('/users/:id', adminAuth, usersCtrl.deleteUser);
 
 module.exports = router;

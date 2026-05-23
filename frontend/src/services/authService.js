@@ -18,4 +18,13 @@ export const authService = {
 
     return response.json();
   },
+
+  logout: async () => {
+    // Clears the HttpOnly token cookie on the server side.
+    await fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).catch(() => {}); // Best-effort — don't block the UI if it fails
+  },
 };
+

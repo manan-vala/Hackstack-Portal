@@ -1,19 +1,16 @@
-// src/api/admin.js
-// Hits your Express backend for admin authentication.
-// Backend should verify credentials + check isAdmin: true in Users collection,
-// then return a signed JWT.
+// Admin API client
+// Admin auth is entirely credential-based (username + password against env vars).
+// There is no MongoDB User record for admins and no GitHub OAuth involved.
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
 /**
  * POST /api/auth/admin/login
  * Body: { username, password }
- * Returns: { token, user: { _id, username, avatarUrl, isAdmin } }
+ * Returns: { token, user: { username, isAdmin } }
  *
- * Backend middleware should:
- *  1. Verify username + password
- *  2. Check user.isAdmin === true in MongoDB
- *  3. Sign and return JWT
+ * Backend verifies credentials against ADMIN_USERNAME/ADMIN_PASSWORD env vars,
+ * then returns a signed JWT. No database record is created or queried.
  */
 export async function adminLogin({ username, password }) {
   const res = await fetch(`${BASE_URL}/auth/admin/login`, {
@@ -27,10 +24,6 @@ export async function adminLogin({ username, password }) {
 
   if (!res.ok) {
     throw new Error(data.message || "Login failed");
-  }
-
-  if (!data.user?.isAdmin) {
-    throw new Error("Access denied. You are not an admin.");
   }
 
   return data; // { token, user }

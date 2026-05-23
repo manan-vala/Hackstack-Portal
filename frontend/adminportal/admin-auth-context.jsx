@@ -1,7 +1,7 @@
-// src/context/AdminAuthContext.jsx
+// AdminAuthContext
 // Manages admin session state.
-// On login, stores JWT in localStorage and sets isAdmin flag.
-// This works with your existing JWT + isAdmin field in the Users collection.
+// Admin auth is entirely credential-based (username + password against env vars).
+// On login, stores JWT in localStorage. No GitHub OAuth, no MongoDB User record.
 
 import { createContext, useContext, useState, useEffect } from "react";
 
