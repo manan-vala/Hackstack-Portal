@@ -132,12 +132,9 @@ function ModuleDetail() {
     const quiz = resolvedQuizByDayId.get(day.id) || null;
     const previousDay = moduleDays[index - 1];
     const completed = completedSet.has(day.id);
-    const locked =
-      !isRegistered ||
-      (index > 0 && !completedSet.has(previousDay?.id?.toString()));
+    const locked = false;
 
-    return {
-      ...day,
+    return {      ...day,
       quiz,
       questionCount: quiz?.questions?.length || 0,
       totalPoints:
@@ -258,13 +255,6 @@ function ModuleDetail() {
       ) : null}
       {actionError ? (
         <div className="modules-alert modules-alert-danger">{actionError}</div>
-      ) : null}
-
-      {!isRegistered ? (
-        <div className="modules-alert modules-alert-warning">
-          You are not enrolled in this module yet. Head back to the module
-          catalog and register first.
-        </div>
       ) : null}
 
       {module.learningOutcomes.length > 0 ? (

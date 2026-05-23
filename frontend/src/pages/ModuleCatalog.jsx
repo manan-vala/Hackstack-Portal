@@ -179,23 +179,13 @@ function ModuleCatalog() {
 
                     <div className="module-card-actions">
                       {isRegistered ? (
-                        <>
-                          <Link
-                            to={`/modules/${module.slug}`}
-                            className="module-primary-button"
-                          >
-                            {completedDays > 0 ? "Resume" : "Start"}
-                            <ArrowRight size={15} />
-                          </Link>
-                          <button
-                            type="button"
-                            className="module-text-button"
-                            disabled={pendingId === module.id}
-                            onClick={() => handleUnregister(module.id)}
-                          >
-                            Unenroll
-                          </button>
-                        </>
+                        <Link
+                          to={`/modules/${module.slug}`}
+                          className="module-primary-button"
+                        >
+                          {completedDays > 0 ? "Resume" : "Start"}
+                          <ArrowRight size={15} />
+                        </Link>
                       ) : (
                         <button
                           type="button"
