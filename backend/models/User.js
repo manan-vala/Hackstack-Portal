@@ -7,7 +7,8 @@ const userSchema = new mongoose.Schema(
 		email: { type: String, required: true, unique: true },
 		avatarUrl: { type: String },
 		registeredModules: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Module' }],
-		totalScore: { type: Number, default: 0 }
+		totalScore: { type: Number, default: 0 },
+		githubAccessToken: { type: String }
 	},
 	{ timestamps: true }
 );

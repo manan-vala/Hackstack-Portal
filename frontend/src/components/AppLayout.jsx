@@ -3,6 +3,7 @@ import LibraryBig from "lucide-react/dist/esm/icons/library-big";
 import MoonStar from "lucide-react/dist/esm/icons/moon-star";
 import SunMedium from "lucide-react/dist/esm/icons/sun-medium";
 import Sparkles from "lucide-react/dist/esm/icons/sparkles";
+import LogOut from "lucide-react/dist/esm/icons/log-out";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -51,7 +52,7 @@ function getPageMeta(pathname) {
 }
 
 export function AppLayout({ children }) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const pageMeta = getPageMeta(location.pathname);
@@ -120,6 +121,16 @@ export function AppLayout({ children }) {
                 <SunMedium size={16} />
               )}
               <span>{theme === "light" ? "Dark mode" : "Light mode"}</span>
+            </button>
+
+            <button
+              type="button"
+              className="portal-logout-button"
+              onClick={logout}
+              aria-label="Logout"
+            >
+              <LogOut size={16} />
+              <span>Logout</span>
             </button>
 
             <div className="portal-user-pill">

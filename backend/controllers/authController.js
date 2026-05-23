@@ -38,6 +38,7 @@ exports.redirectToGitHub = (req, res) => {
     redirect_uri: getCallbackUrl(),
     scope: 'user:email',
     state,
+    prompt: 'select_account',
   });
 
   res.redirect(`https://github.com/login/oauth/authorize?${params}`);
@@ -105,7 +106,11 @@ exports.handleGitHubCallback = async (req, res) => {
         username: githubProfile.login,
         email: email || `${githubProfile.login}@users.noreply.github.com`,
         avatarUrl: githubProfile.avatar_url,
+        githubAccessToken: accessToken,
       });
+    } else {
+      user.githubAccessToken = accessToken;
+      await user.save();
     }
 
     const token = jwt.sign(
@@ -147,8 +152,49 @@ exports.getMe = async (req, res) => {
   res.json(user);
 };
 
-exports.logout = (req, res) => {
+exports.logout = async (req, res) => {
   const isProd = process.env.NODE_ENV === 'production';
+
+  try {
+    const bearerToken = req.headers.authorization?.startsWith("Bearer")
+      ? req.headers.authorization.split(" ")[1]
+      : null;
+    const token = bearerToken || req.cookies?.token;
+
+    if (token) {
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.id || decoded._id;
+      if (userId) {
+        const user = await User.findById(userId);
+        if (user && user.githubAccessToken) {
+          const credentials = Buffer.from(
+            `${process.env.GITHUB_CLIENT_ID}:${process.env.GITHUB_CLIENT_SECRET}`
+          ).toString('base64');
+
+          try {
+            await axios.delete(
+              `https://api.github.com/applications/${process.env.GITHUB_CLIENT_ID}/grant`,
+              {
+                headers: {
+                  Authorization: `Basic ${credentials}`,
+                  Accept: 'application/vnd.github+json',
+                },
+                data: {
+                  access_token: user.githubAccessToken,
+                },
+              }
+            );
+            console.log(`Successfully revoked GitHub grant for user ${user.username}`);
+          } catch (err) {
+            console.error('Failed to revoke GitHub grant:', err.response?.data || err.message);
+          }
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Error during GitHub token revocation on logout:', err.message);
+  }
+
   res.clearCookie('token', {
     httpOnly: true,
     secure: isProd,

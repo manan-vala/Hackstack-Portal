@@ -185,6 +185,7 @@ html[data-theme="dark"] .portal-sidebar {
 }
 
 .portal-theme-button,
+.portal-logout-button,
 .portal-user-pill {
   border: 1px solid var(--line);
   background: var(--surface);
@@ -198,6 +199,36 @@ html[data-theme="dark"] .portal-sidebar {
   border-radius: 999px;
   padding: 0.78rem 1rem;
   color: var(--text-strong);
+}
+
+.portal-logout-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  border-radius: 999px;
+  padding: 0.78rem 1rem;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 500;
+  transition: all 180ms ease;
+}
+
+.portal-logout-button:hover {
+  border-color: rgba(223, 67, 67, 0.4);
+  background: var(--danger-bg);
+  color: #df4343;
+  transform: translateY(-1px);
+}
+
+html[data-theme="dark"] .portal-logout-button:hover {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: var(--danger-bg);
+  color: #f87171;
+}
+
+.portal-logout-button:active {
+  transform: translateY(0);
 }
 
 .portal-user-pill {
