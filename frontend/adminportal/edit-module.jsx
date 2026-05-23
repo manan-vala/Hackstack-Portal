@@ -35,7 +35,13 @@ const slugify = (value) =>
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "");
 
-const asId = (value) => value?._id?.toString?.() || value?.toString?.() || "";
+const asId = (value) => {
+  if (!value) return "";
+  if (typeof value === "string") return value;
+  if (value._id) return value._id.toString();
+  if (value.id) return value.id.toString();
+  return value.toString?.() || "";
+};
 
 const readFileAsText = (file) =>
   new Promise((resolve, reject) => {
@@ -112,18 +118,19 @@ function MarkdownEditor({
 }
 
 function quizBelongsToModule(quiz, moduleId) {
-  const quizModuleId = asId(quiz.moduleId);
-  const populatedModuleId = asId(quiz.moduleId?._id);
-  return quizModuleId === moduleId || populatedModuleId === moduleId;
+  return asId(quiz.moduleRefId || quiz.moduleId) === asId(moduleId);
 }
 
 function buildDaysFromModule(moduleDoc, moduleQuizzes) {
   const days = [];
+  const quizzesByDayId = new Map(
+    moduleQuizzes.map((quiz) => [asId(quiz.dayId), quiz]),
+  );
 
   for (const chapter of moduleDoc.chapters || []) {
     for (const day of chapter.days || []) {
       const dayId = asId(day._id);
-      const quiz = moduleQuizzes.find((entry) => asId(entry.dayId) === dayId);
+      const quiz = quizzesByDayId.get(dayId);
       days.push({
         id: dayId,
         title: `Day ${days.length + 1}`,
@@ -481,13 +488,24 @@ export default function EditModule() {
         throw new Error("Module was updated, but day IDs were not returned correctly.");
       }
 
+      const savedDaysByOriginalId = new Map(
+        savedDays.map((day) => [asId(day._id), day]),
+      );
       const savedDayIds = new Set(savedDays.map((day) => asId(day._id)));
 
       await Promise.all(
         payload.preparedDays.map((day, index) => {
+          const savedDay = day.id
+            ? savedDaysByOriginalId.get(asId(day.id)) || savedDays[index]
+            : savedDays[index];
+
+          if (!savedDay?._id) {
+            throw new Error(`Could not match saved Day ${index + 1} to a database id.`);
+          }
+
           const quizPayload = {
             moduleId: updatedModule._id,
-            dayId: savedDays[index]._id,
+            dayId: savedDay._id,
             questions: day.questions,
           };
 

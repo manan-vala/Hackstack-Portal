@@ -127,9 +127,14 @@ exports.updateModule = async (req, res) => {
   }
 
   try {
-    const moduleDoc = await Module.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const moduleDoc = await Module.findById(req.params.id);
     if (!moduleDoc) return res.status(404).json({ message: 'Module not found.' });
-    res.json(serializeModule(moduleDoc));
+
+    moduleDoc.set(req.body);
+    await moduleDoc.save();
+
+    const freshModule = await Module.findById(req.params.id);
+    res.json(serializeModule(freshModule));
   } catch (error) {
     res.status(400).json({ message: 'Failed to update module.', error: error.message });
   }

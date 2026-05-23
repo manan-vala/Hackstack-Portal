@@ -18,9 +18,14 @@ const getQuizSubmissionDeadline = (quiz) => {
 const serializeQuiz = (quiz) => {
   const submissionDeadline = getQuizSubmissionDeadline(quiz);
   const now = new Date();
+  const rawQuiz = quiz.toObject();
+  const moduleId = rawQuiz.moduleId?._id || rawQuiz.moduleId;
 
   return {
-    ...quiz.toObject(),
+    ...rawQuiz,
+    moduleId: rawQuiz.moduleId,
+    moduleRefId: moduleId?.toString?.() || moduleId,
+    dayId: rawQuiz.dayId?.toString?.() || rawQuiz.dayId,
     submissionDeadline,
     isExpired: submissionDeadline ? now > submissionDeadline : false,
   };
