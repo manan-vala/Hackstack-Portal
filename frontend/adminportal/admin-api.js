@@ -106,6 +106,16 @@ export async function updateAdminModule(moduleId, moduleData) {
   return parseJsonResponse(res, "Failed to update module");
 }
 
+export async function deleteAdminModule(moduleId) {
+  const res = await fetch(`${BASE_URL}/admin/modules/${moduleId}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: getAdminHeaders(),
+  });
+
+  return parseJsonResponse(res, "Failed to delete module");
+}
+
 export async function listAdminQuizzes() {
   const res = await fetch(`${BASE_URL}/admin/quizzes`, {
     credentials: "include",

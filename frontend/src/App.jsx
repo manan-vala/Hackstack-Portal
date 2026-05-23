@@ -20,6 +20,7 @@ import AdminLogin from "../adminportal/admin-login";
 import AdminDashboard from "../adminportal/admin-dashboard";
 import CreateModule from "../adminportal/create-module";
 import EditModule from "../adminportal/edit-module";
+import DeleteModule from "../adminportal/delete-module";
 import Leaderboard from "../adminportal/leaderboard";
 
 const ProtectedRoute = ({ children }) => {
@@ -116,6 +117,14 @@ const App = () => {
                 element={
                   <AdminProtectedRoute>
                     <EditModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/delete"
+                element={
+                  <AdminProtectedRoute>
+                    <DeleteModule />
                   </AdminProtectedRoute>
                 }
               />
