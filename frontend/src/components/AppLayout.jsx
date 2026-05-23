@@ -1,5 +1,6 @@
 import LayoutDashboard from "lucide-react/dist/esm/icons/layout-dashboard";
 import LibraryBig from "lucide-react/dist/esm/icons/library-big";
+import Trophy from "lucide-react/dist/esm/icons/trophy";
 import MoonStar from "lucide-react/dist/esm/icons/moon-star";
 import SunMedium from "lucide-react/dist/esm/icons/sun-medium";
 import Sparkles from "lucide-react/dist/esm/icons/sparkles";
@@ -22,6 +23,12 @@ const NAV_ITEMS = [
     caption: "Learning path",
     icon: LibraryBig,
   },
+  {
+    to: "/leaderboard",
+    label: "Leaderboard",
+    caption: "Standings",
+    icon: Trophy,
+  },
 ];
 
 function getPageMeta(pathname) {
@@ -40,6 +47,15 @@ function getPageMeta(pathname) {
       title: "Modules",
       description:
         "Choose a stack, register instantly, and move through each day with a clear pace.",
+    };
+  }
+
+  if (pathname.startsWith("/leaderboard")) {
+    return {
+      eyebrow: "Community standings",
+      title: "Leaderboard",
+      description:
+        "Check how you rank globally and across individual modules.",
     };
   }
 

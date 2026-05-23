@@ -13,6 +13,7 @@ import AuthCallback from "./pages/AuthCallback";
 import Dashboard from "./pages/Dashboard";
 import ModuleCatalog from "./pages/ModuleCatalog";
 import ModuleDetail from "./pages/ModuleDetail";
+import Leaderboard from "./pages/Leaderboard";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -76,6 +77,14 @@ const App = () => {
               element={
                 <ProtectedApp>
                   <ModuleDetail />
+                </ProtectedApp>
+              }
+            />
+            <Route
+              path="/leaderboard"
+              element={
+                <ProtectedApp>
+                  <Leaderboard />
                 </ProtectedApp>
               }
             />

@@ -58,11 +58,16 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Internal Server Error" });
 });
 
+const syncLeaderboards = require("./utils/leaderboardSync");
+
 // Start Server
 const startServer = async () => {
   try {
     // Connect to database and wait for successful connection
     await connectDB();
+
+    // Auto-sync leaderboards on startup
+    await syncLeaderboards();
 
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {

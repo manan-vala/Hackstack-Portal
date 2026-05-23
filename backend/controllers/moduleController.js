@@ -141,14 +141,48 @@ exports.updateModule = async (req, res) => {
 };
 
 exports.deleteModule = async (req, res) => {
-  if (!isValidObjectId(req.params.id)) {
+  const moduleId = req.params.id;
+  if (!isValidObjectId(moduleId)) {
     return res.status(400).json({ message: 'Invalid module id.' });
   }
 
   try {
-    const moduleDoc = await Module.findByIdAndDelete(req.params.id);
-    if (!moduleDoc) return res.status(404).json({ message: 'Module not found.' });
-    res.json({ message: 'Module deleted.' });
+    // 1. Find progress records to subtract scores from users
+    const progressList = await Progress.find({ moduleId });
+    for (const progress of progressList) {
+      const moduleScore = (progress.quizScores || []).reduce((sum, item) => sum + (item.score || 0), 0);
+      if (moduleScore > 0) {
+        // Subtract from user totalScore
+        await User.findByIdAndUpdate(progress.userId, {
+          $inc: { totalScore: -moduleScore }
+        });
+      }
+    }
+
+    // 2. Delete progress records for the deleted module
+    await Progress.deleteMany({ moduleId });
+
+    // 3. Remove the module from any users' registeredModules list
+    await User.updateMany(
+      { registeredModules: moduleId },
+      { $pull: { registeredModules: moduleId } }
+    );
+
+    // 4. Delete the leaderboard entries for the deleted module
+    const Leaderboard = require('../models/Leaderboard');
+    await Leaderboard.deleteMany({ moduleId });
+
+    // 5. Delete the module itself
+    const moduleDoc = await Module.findByIdAndDelete(moduleId);
+    if (!moduleDoc) {
+      return res.status(404).json({ message: 'Module not found.' });
+    }
+
+    // 6. Recalculate/Sync all leaderboards
+    const syncLeaderboards = require('../utils/leaderboardSync');
+    await syncLeaderboards();
+
+    res.json({ message: 'Module and associated progress/scores deleted successfully.' });
   } catch (error) {
     res.status(500).json({ message: 'Failed to delete module.', error: error.message });
   }

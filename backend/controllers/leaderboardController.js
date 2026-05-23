@@ -25,7 +25,8 @@ const listLeaderboard = async (req, res, moduleId = null) => {
   try {
     const filters = {
       moduleId: moduleId ?? null,
-      periodType
+      periodType,
+      score: { $gt: 0 }
     };
 
     const entries = await Leaderboard.find(filters)
