@@ -218,7 +218,7 @@ exports.adminLogin = (req, res) => {
   // Admin auth is entirely credential-based — no MongoDB User record is
   // created or queried. The admin portal is fully decoupled from GitHub OAuth.
   const token = jwt.sign(
-    { isAdmin: true, username },
+    { isAdmin: true, username, canDelete: true },
     process.env.JWT_SECRET,
     { expiresIn: '30d' },
   );
@@ -228,6 +228,6 @@ exports.adminLogin = (req, res) => {
   // keeping it completely isolated from the user frontend's HttpOnly cookie.
   return res.json({
     token,
-    user: { username, isAdmin: true },
+    user: { username, isAdmin: true, canDelete: true },
   });
 };

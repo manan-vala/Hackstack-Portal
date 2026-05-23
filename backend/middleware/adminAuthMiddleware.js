@@ -30,7 +30,7 @@ const adminAuth = (req, res, next) => {
     }
 
     // Attach a lightweight admin identity to req (no DB record exists)
-    req.admin = { username: decoded.username, isAdmin: true };
+    req.admin = { username: decoded.username, isAdmin: true, canDelete: !!decoded.canDelete };
     return next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token failed.' });
