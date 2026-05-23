@@ -15,7 +15,7 @@ const jwt = require('jsonwebtoken');
  * This guarantees admin sessions are completely isolated from the user frontend,
  * which relies on HttpOnly cookies tied to GitHub OAuth user records.
  */
-const adminAuth = (req, res, next) => {
+const adminAuth = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader?.startsWith('Bearer ')) {
@@ -29,8 +29,26 @@ const adminAuth = (req, res, next) => {
       return res.status(403).json({ message: 'Admin access required.' });
     }
 
-    // Attach a lightweight admin identity to req (no DB record exists)
-    req.admin = { username: decoded.username, isAdmin: true, canDelete: !!decoded.canDelete };
+    const username = decoded.username;
+
+    // Bypass database lookup if it is the credential-based root admin
+    if (username && username === process.env.ADMIN_USERNAME) {
+      req.admin = { username, isAdmin: true, canDelete: true };
+      return next();
+    }
+
+    // Query the database whitelist to ensure the user is still whitelisted
+    const AdminWhitelist = require('../models/AdminWhitelist');
+    const whitelistRecord = await AdminWhitelist.findOne({
+      githubUsername: username ? username.toLowerCase() : ''
+    });
+
+    if (!whitelistRecord) {
+      return res.status(401).json({ message: 'Not authorized. Admin access has been revoked.' });
+    }
+
+    // Attach latest info using the database record
+    req.admin = { username, isAdmin: true, canDelete: !!whitelistRecord.canDelete };
     return next();
   } catch (error) {
     return res.status(401).json({ message: 'Not authorized, token failed.' });
