@@ -112,6 +112,14 @@ const App = () => {
                 }
               />
               <Route
+                path="/admin/modules/edit"
+                element={
+                  <AdminProtectedRoute>
+                    <EditModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/modules/edit/:id"
                 element={
                   <AdminProtectedRoute>

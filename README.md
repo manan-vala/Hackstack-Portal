@@ -234,6 +234,7 @@ VITE_API_URL=http://localhost:5000/api
 
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|:-------------:|
+| POST | `/api/auth/admin/login` | Admin username/password login, returns JWT | ❌ |
 | GET | `/api/auth/github` | Redirect to GitHub OAuth | ❌ |
 | GET | `/api/auth/github/callback` | OAuth callback handler | ❌ |
 | GET | `/api/auth/me` | Get current user | ✅ |

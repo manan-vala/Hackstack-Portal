@@ -11,14 +11,17 @@ const moduleSchema = new mongoose.Schema(
 				days: [
 					{
 						title: { type: String, required: true },
-						contentMarkdown: { type: String, required: true },
+						contentMarkdown: { type: String, default: '' },
 						videoUrl: [{ type: String }]
 					}
 				]
 			}
 		],
 		isPublished: { type: Boolean, default: false },
-		difficulty: { type: String }
+		difficulty: { type: String },
+		week: { type: Number },
+		learningOutcomes: [{ type: String }],
+		finalTask: { type: String, default: '' }
 	},
 	{ timestamps: true }
 );

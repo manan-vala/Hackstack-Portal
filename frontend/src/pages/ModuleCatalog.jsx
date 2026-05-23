@@ -121,7 +121,10 @@ function ModuleCatalog() {
                 module.dayCount > 0
                   ? Math.round((completedDays / module.dayCount) * 100)
                   : 0;
-              const videoCount = module.days.filter((day) => day.videoUrl).length;
+              const videoCount = module.days.reduce(
+                (count, day) => count + (day.videoUrls?.length || (day.videoUrl ? 1 : 0)),
+                0,
+              );
               const outcomes =
                 module.learningOutcomes.length > 0
                   ? module.learningOutcomes

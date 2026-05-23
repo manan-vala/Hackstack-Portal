@@ -293,6 +293,11 @@ function DayModal({
   submitting = false,
 }) {
   const [locallyCompleted, setLocallyCompleted] = useState(false);
+  const videoUrls = Array.isArray(chapter.videoUrls)
+    ? chapter.videoUrls.filter(Boolean)
+    : chapter.videoUrl
+      ? [chapter.videoUrl]
+      : [];
   const hasQuiz = (chapter.quiz?.length ?? 0) > 0;
   const [activeTab, setActiveTab] = useState("content");
   const quizDone = locallyCompleted || isCompleted || Boolean(dailyQuizAttempt);
@@ -336,10 +341,10 @@ function DayModal({
               </div>
               <h2 className="leading-snug text-white">{chapter.title}</h2>
               <div className="mt-3 flex flex-wrap items-center gap-2">
-                {chapter.videoUrl ? (
+                {videoUrls.length > 0 ? (
                   <Pill>
                     <Play className="size-3" />
-                    Video
+                    {videoUrls.length === 1 ? "Video" : `${videoUrls.length} videos`}
                   </Pill>
                 ) : null}
                 {hasQuiz ? (
@@ -403,21 +408,30 @@ function DayModal({
                 exit={{ opacity: 0 }}
                 className="space-y-6 p-6"
               >
-                {chapter.videoUrl ? (
-                  <div className="aspect-video overflow-hidden rounded-2xl border border-white/10">
-                    <iframe
-                      src={toEmbedUrl(chapter.videoUrl)}
-                      className="h-full w-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title={`${chapter.title} video`}
-                    />
+                {videoUrls.length > 0 ? (
+                  <div className="space-y-4">
+                    {videoUrls.map((videoUrl, index) => (
+                      <div
+                        key={`${videoUrl}-${index}`}
+                        className="aspect-video overflow-hidden rounded-2xl border border-white/10"
+                      >
+                        <iframe
+                          src={toEmbedUrl(videoUrl)}
+                          className="h-full w-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                          title={`${chapter.title} video ${index + 1}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 ) : null}
 
-                <div>
-                  <Markdown source={chapter.contentMarkdown} tone="dark" />
-                </div>
+                {chapter.contentMarkdown ? (
+                  <div>
+                    <Markdown source={chapter.contentMarkdown} tone="dark" />
+                  </div>
+                ) : null}
 
                 {hasQuiz && !quizDone ? (
                   <motion.div

@@ -4,16 +4,16 @@ function Markdown({ source, tone = "light" }) {
   const palette =
     tone === "dark"
       ? {
-          headingStrong: "text-white",
-          headingSoft: "text-slate-100",
-          body: "text-slate-300",
+          headingStrong: "!text-slate-50 font-bold",
+          headingSoft: "!text-slate-100 font-semibold",
+          body: "!text-slate-300",
           inlineCode:
-            "bg-white/10 border border-white/10 px-1.5 py-0.5 rounded text-sm text-slate-100",
-          blockquote: "border-l-2 border-cyan-400 pl-3 my-2 text-slate-300 italic",
+            "bg-white/10 border border-white/10 px-1.5 py-0.5 rounded text-sm !text-slate-100",
+          blockquote: "border-l-2 border-cyan-400 pl-3 my-3 !text-slate-300 italic",
           codeBlock:
-            "bg-slate-900/80 border border-white/10 rounded-lg p-4 overflow-x-auto my-3 text-sm text-slate-100",
-          strong: "text-white",
-          list: "ml-5 list-disc text-slate-300",
+            "bg-slate-950 border border-white/10 rounded-lg p-4 overflow-x-auto my-4 text-sm !text-slate-100",
+          strong: "!text-white font-semibold",
+          list: "ml-5 list-disc !text-slate-300 leading-7",
         }
       : {
           headingStrong: "text-slate-900",
@@ -91,19 +91,19 @@ function Markdown({ source, tone = "light" }) {
 
     if (line.startsWith("### ")) {
       out.push(
-        <h3 key={idx} className={`${palette.headingSoft} mt-5 mb-2`}>
+        <h3 key={idx} className={`${palette.headingSoft} mt-5 mb-2 text-lg`}>
           {line.slice(4)}
         </h3>
       );
     } else if (line.startsWith("## ")) {
       out.push(
-        <h2 key={idx} className={`${palette.headingStrong} tracking-tight mt-6 mb-2`}>
+        <h2 key={idx} className={`${palette.headingStrong} tracking-tight mt-6 mb-3 text-xl`}>
           {line.slice(3)}
         </h2>
       );
     } else if (line.startsWith("# ")) {
       out.push(
-        <h1 key={idx} className={`${palette.headingStrong} tracking-tight mt-4 mb-2`}>
+        <h1 key={idx} className={`${palette.headingStrong} tracking-tight mt-4 mb-3 text-2xl`}>
           {line.slice(2)}
         </h1>
       );
@@ -123,7 +123,7 @@ function Markdown({ source, tone = "light" }) {
       out.push(<div key={idx} className="h-2" />);
     } else {
       out.push(
-        <p key={idx} className={`${palette.body} leading-relaxed`}>
+        <p key={idx} className={`${palette.body} leading-7`}>
           {inline(line)}
         </p>
       );

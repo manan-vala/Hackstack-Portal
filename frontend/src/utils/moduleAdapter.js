@@ -64,12 +64,19 @@ export function flattenModuleDays(module) {
 
   for (const chapter of module.chapters || []) {
     for (const day of chapter.days || []) {
+      const videoUrls = Array.isArray(day.videoUrl)
+        ? day.videoUrl.filter(Boolean)
+        : day.videoUrl
+          ? [day.videoUrl]
+          : [];
+
       days.push({
         id: day._id?.toString(),
         day: dayNumber,
         title: day.title,
         contentMarkdown: day.contentMarkdown,
-        videoUrl: Array.isArray(day.videoUrl) ? day.videoUrl[0] : day.videoUrl,
+        videoUrl: videoUrls[0] || "",
+        videoUrls,
         chapterTitle: chapter.title,
       });
       dayNumber += 1;

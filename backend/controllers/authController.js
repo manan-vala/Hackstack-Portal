@@ -3,6 +3,9 @@ const axios = require('axios');
 const crypto = require('crypto');
 const User = require('../models/User');
 
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+
 const stateStore = new Map();
 
 // OAuth callback must match the URL the browser hits (use Vite proxy in dev → port 5173).
@@ -140,4 +143,62 @@ exports.getMe = async (req, res) => {
   }
 
   res.json(user);
+};
+
+exports.adminLogin = async (req, res) => {
+  const { username, password } = req.body || {};
+
+  if (!username || !password) {
+    return res.status(400).json({ message: 'Username and password are required.' });
+  }
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ message: 'Invalid admin credentials.' });
+  }
+
+  try {
+    let user = await User.findOne({ username });
+
+    if (user && !user.isAdmin) {
+      return res.status(403).json({ message: 'Admin access required.' });
+    }
+
+    if (!user) {
+      user = await User.create({
+        githubId: `admin:${username}`,
+        username,
+        email: `${username}@admin.local`,
+        avatarUrl: '',
+        isAdmin: true,
+      });
+    }
+
+    const token = jwt.sign(
+      { id: user._id, isAdmin: true },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' },
+    );
+
+    const isProd = process.env.NODE_ENV === 'production';
+
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: isProd,
+      sameSite: isProd ? 'none' : 'lax',
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+      path: '/',
+    });
+
+    return res.json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        avatarUrl: user.avatarUrl || '',
+        isAdmin: true,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Admin authentication failed.' });
+  }
 };
