@@ -13,7 +13,13 @@ const AuthCallback = () => {
         // Fetch user data via API - token is in HttpOnly cookie (automatically sent)
         const userData = await authService.getCurrentUser();
         login(null, userData); // null token since it's in cookie
-        navigate('/dashboard');
+        const isAdminRedirect = localStorage.getItem("admin_login_redirect") === "true";
+        if (isAdminRedirect) {
+          localStorage.removeItem("admin_login_redirect");
+          window.location.assign("/admin/dashboard");
+        } else {
+          navigate('/dashboard');
+        }
       } catch (err) {
         console.error('Authentication failed:', err);
         navigate('/login?error=auth_failed');

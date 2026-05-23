@@ -2,7 +2,7 @@
 // Admin-only login page. Separate from the GitHub OAuth user login.
 // On success → redirects to /admin/dashboard
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAdminAuth } from "./admin-auth-context";
@@ -11,13 +11,66 @@ import { adminLogin, mockAdminLogin } from "./admin-api";
 const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
 
 export default function AdminLogin() {
-  const { login } = useAdminAuth();
+  const { login, admin } = useAdminAuth();
   const navigate = useNavigate();
+
+  const [checking, setChecking] = useState(true);
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [deniedMessage, setDeniedMessage] = useState("");
 
   const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPass, setShowPass] = useState(false);
+
+  useEffect(() => {
+    if (admin) {
+      navigate("/admin/dashboard", { replace: true });
+      return;
+    }
+
+    async function checkAuth() {
+      if (USE_MOCK) {
+        setChecking(false);
+        return;
+      }
+      try {
+        const res = await fetch("/api/auth/admin-check");
+        const data = await res.json();
+
+        if (data.authorized) {
+          login(data.user, data.token);
+          navigate("/admin/dashboard", { replace: true });
+        } else if (data.loginRequired) {
+          localStorage.setItem("admin_login_redirect", "true");
+          window.location.assign("/api/auth/github");
+        } else if (data.forbidden) {
+          setDeniedMessage(data.message || "Your GitHub account is not authorized to access the admin portal.");
+          setAccessDenied(true);
+          setChecking(false);
+        } else {
+          setChecking(false);
+        }
+      } catch (err) {
+        console.error("Auth check failed:", err);
+        setChecking(false);
+      }
+    }
+
+    checkAuth();
+  }, [admin, login, navigate]);
+
+  const handleSwitchAccount = async () => {
+    setChecking(true);
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.setItem("admin_login_redirect", "true");
+      window.location.assign("/api/auth/github");
+    } catch (err) {
+      console.error("Logout failed:", err);
+      setChecking(false);
+    }
+  };
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -45,6 +98,63 @@ export default function AdminLogin() {
       setLoading(false);
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex flex-col items-center justify-center px-4">
+        <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-indigo-500 mb-4"></div>
+        <p className="text-gray-400 text-sm tracking-wide animate-pulse">Checking administrator permissions...</p>
+      </div>
+    );
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="w-full max-w-md bg-gray-900 border border-gray-800 rounded-2xl p-8 shadow-2xl text-center"
+        >
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-950/40 border border-red-850 text-red-400 mb-5 shadow-lg shadow-red-900/10">
+            <svg
+              className="w-8 h-8"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+              />
+            </svg>
+          </div>
+          <h1 className="text-xl font-bold text-white tracking-tight mb-2">
+            Access Denied
+          </h1>
+          <p className="text-gray-400 text-sm leading-relaxed mb-6">
+            {deniedMessage}
+          </p>
+          <div className="flex flex-col gap-3">
+            <button
+              onClick={handleSwitchAccount}
+              className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-lg py-2.5 transition-colors shadow-lg shadow-indigo-900/30"
+            >
+              Switch GitHub Account
+            </button>
+            <button
+              onClick={() => window.location.assign("/")}
+              className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-semibold text-sm rounded-lg py-2.5 transition-all"
+            >
+              Return to User Portal
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-950 flex items-center justify-center px-4">

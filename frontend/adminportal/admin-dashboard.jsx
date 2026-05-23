@@ -251,7 +251,7 @@ export default function AdminDashboard() {
 
         {/* ── Action Cards ─────────────────────────────────────────────── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {ACTIONS.map((action, i) => (
+          {ACTIONS.filter(a => a.key !== "delete" || admin?.canDelete).map((action, i) => (
             <motion.button
               key={action.key}
               initial={{ opacity: 0, y: 20 }}

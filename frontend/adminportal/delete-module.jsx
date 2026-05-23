@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { deleteAdminModule, listAdminModules } from "./admin-api";
+import { useAdminAuth } from "./admin-auth-context";
 
 const getModuleSummary = (moduleDoc) => {
   const chapters = Array.isArray(moduleDoc?.chapters) ? moduleDoc.chapters : [];
@@ -18,7 +19,15 @@ const getModuleSummary = (moduleDoc) => {
 };
 
 export default function DeleteModule() {
+  const { admin } = useAdminAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (admin && !admin.canDelete) {
+      navigate("/admin/dashboard", { replace: true });
+    }
+  }, [admin, navigate]);
+
   const [modules, setModules] = useState([]);
   const [selectedModuleId, setSelectedModuleId] = useState("");
   const [loading, setLoading] = useState(true);
