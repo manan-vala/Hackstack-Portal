@@ -1,77 +1,80 @@
-// src/App.jsx
-// Shows where to plug in the admin routes alongside your existing routes.
-// Copy the admin section into your actual App.jsx.
+// Admin standalone application
+// Access at /admin.html in production or admin routes when served separately
 
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
-// ── Existing pages (your team's work) ────────────────────────────────────────
-// import Login          from "./pages/Login";
-// import Dashboard      from "./pages/Dashboard";
-// import ModuleCatalog  from "./pages/ModuleCatalog";
-// import CoursePage     from "./pages/CoursePage";
-// import QuizPage       from "./pages/QuizPage";
-import Leaderboard    from "./pages/Leaderboard";          // ← already delivered
-
 // ── Admin pages ───────────────────────────────────────────────────────────────
-import AdminLogin      from "./pages/admin/AdminLogin";
-import AdminDashboard  from "./pages/admin/AdminDashboard";
-import CreateModule    from "./pages/admin/CreateModule";
-import EditModule      from "./pages/admin/EditModule";
+import AdminLogin from "./admin-login";
+import AdminDashboard from "./admin-dashboard";
+import CreateModule from "./create-module";
+import EditModule from "./edit-module";
+import DeleteModule from "./delete-module";
+import Leaderboard from "./leaderboard";
 
-// ── Guards ────────────────────────────────────────────────────────────────────
-// import ProtectedRoute      from "./components/ProtectedRoute";       // your existing JWT guard
-import AdminProtectedRoute from "./components/admin/AdminProtectedRoute";
+// ── Guard ────────────────────────────────────────────────────────────────────
+import AdminProtectedRoute from "./admin-protected-route";
 
-// ── Context ───────────────────────────────────────────────────────────────────
-import { AdminAuthProvider } from "./context/AdminAuthContext";
-
-export default function App() {
+export default function AdminApp() {
   return (
-    <AdminAuthProvider>
-      <BrowserRouter>
-        <Routes>
+    <BrowserRouter>
+      <Routes>
+        {/* ── Admin routes ────────────────────────────────────────────── */}
+        <Route path="/" element={<Navigate to="/admin/login" replace />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* ── User-facing routes (your team wires these) ─────────────── */}
-          {/* <Route path="/login"        element={<Login />} /> */}
-          {/* <Route path="/dashboard"    element={<ProtectedRoute><Dashboard /></ProtectedRoute>} /> */}
-          {/* <Route path="/modules"      element={<ProtectedRoute><ModuleCatalog /></ProtectedRoute>} /> */}
-          {/* <Route path="/course/:slug" element={<ProtectedRoute><CoursePage /></ProtectedRoute>} /> */}
-          {/* <Route path="/quiz/:moduleId" element={<ProtectedRoute><QuizPage /></ProtectedRoute>} /> */}
-          <Route path="/leaderboard" element={<Leaderboard />} />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/modules/create"
+          element={
+            <AdminProtectedRoute>
+              <CreateModule />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/modules/edit"
+          element={
+            <AdminProtectedRoute>
+              <EditModule />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/modules/edit/:id"
+          element={
+            <AdminProtectedRoute>
+              <EditModule />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/modules/delete"
+          element={
+            <AdminProtectedRoute>
+              <DeleteModule />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/leaderboard"
+          element={
+            <AdminProtectedRoute>
+              <Leaderboard />
+            </AdminProtectedRoute>
+          }
+        />
 
-          {/* ── Admin routes ────────────────────────────────────────────── */}
-          <Route path="/admin/login" element={<AdminLogin />} />
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/admin/login" replace />} />
 
-          <Route
-            path="/admin/dashboard"
-            element={
-              <AdminProtectedRoute>
-                <AdminDashboard />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/modules/create"
-            element={
-              <AdminProtectedRoute>
-                <CreateModule />
-              </AdminProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/modules/edit"
-            element={
-              <AdminProtectedRoute>
-                <EditModule />
-              </AdminProtectedRoute>
-            }
-          />
-
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/leaderboard" replace />} />
-
-        </Routes>
-      </BrowserRouter>
-    </AdminAuthProvider>
+      </Routes>
+    </BrowserRouter>
   );
 }

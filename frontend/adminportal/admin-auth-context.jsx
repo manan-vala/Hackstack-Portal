@@ -37,6 +37,29 @@ export function AdminAuthProvider({ children }) {
     setAdmin(null);
   };
 
+  // Auto-logout when the admin tab is closed
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      // Clear admin session when the tab is closed
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("adminUser");
+    };
+
+    const handlePageHide = () => {
+      // Additional handler for mobile/browser tab switching
+      localStorage.removeItem("jwt");
+      localStorage.removeItem("adminUser");
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("pagehide", handlePageHide);
+
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      window.removeEventListener("pagehide", handlePageHide);
+    };
+  }, []);
+
   return (
     <AdminAuthContext.Provider value={{ admin, login, logout, loading }}>
       {children}
