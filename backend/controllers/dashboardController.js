@@ -70,11 +70,11 @@ exports.getDashboard = async (req, res) => {
       const attemptedSet = new Set(
         (progress?.attemptedQuizIds || []).map((id) => id.toString())
       );
-      const scoreByDay = new Map(
+      const attemptsByDay = new Map(
         (progress?.quizScores || []).map((entry) => [
           entry.dayId?.toString(),
-          entry.score,
-        ])
+          entry,
+        ]),
       );
 
       let moduleQuizScore = 0;
@@ -83,9 +83,10 @@ exports.getDashboard = async (req, res) => {
       const quizResults = moduleQuizzes.map((quiz, index) => {
         const maxScore = getQuizMaxScore(quiz);
         const attempted = attemptedSet.has(quiz._id.toString());
-        const score = attempted
-          ? scoreByDay.get(quiz.dayId?.toString()) ?? 0
-          : 0;
+        const result = attempted
+          ? attemptsByDay.get(quiz.dayId?.toString())
+          : null;
+        const score = result?.score ?? 0;
 
         if (attempted) {
           moduleQuizScore += score;
@@ -98,6 +99,7 @@ exports.getDashboard = async (req, res) => {
           attempted,
           score,
           maxScore,
+          userAnswers: result?.userAnswers || [],
           questionCount: quiz.questions?.length || 0,
           percentage: maxScore > 0 ? Math.round((score / maxScore) * 100) : 0,
         };

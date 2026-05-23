@@ -10,7 +10,8 @@ const progressSchema = new mongoose.Schema(
 		quizScores: [
 			{
 				dayId: { type: mongoose.Schema.Types.ObjectId },
-				score: { type: Number }
+				score: { type: Number },
+				userAnswers: [{ type: Number }]
 			}
 		],
 		currentChapterId: { type: mongoose.Schema.Types.ObjectId },

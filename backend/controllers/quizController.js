@@ -49,7 +49,7 @@ const getModuleDayIndex = (moduleDoc, dayId) => {
   return -1;
 };
 
-const updateLeaderboardEntry = async ({ user, moduleId, score, session }) => {
+const updateLeaderboardEntry = async ({ user, moduleId, score }) => {
   await Leaderboard.findOneAndUpdate(
     {
       userId: user._id,
@@ -69,7 +69,7 @@ const updateLeaderboardEntry = async ({ user, moduleId, score, session }) => {
       },
       $inc: { score },
     },
-    { new: true, upsert: true, runValidators: true, session },
+    { new: true, upsert: true, runValidators: true },
   );
 };
 
@@ -148,25 +148,27 @@ exports.getQuizByDay = async (req, res) => {
 };
 
 exports.submitQuiz = async (req, res) => {
+  console.log(`>>> [SUBMIT_START] QuizID: ${req.params.id}, User: ${req.user?._id}`);
+  
   if (!isValidObjectId(req.params.id)) {
-    return res.status(400).json({ message: "Invalid quiz id." });
+    console.log(`>>> [VAL_ERR] Invalid Quiz ID: ${req.params.id}`);
+    return res.status(400).json({ message: "[VAL_ERR] Invalid quiz id." });
   }
 
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const quiz = await Quiz.findById(req.params.id).session(session);
+    const quiz = await Quiz.findById(req.params.id);
     if (!quiz) {
-      await session.abortTransaction();
-      return res.status(404).json({ message: "Quiz not found." });
+      console.log(`>>> [NOT_FOUND] Quiz ${req.params.id} not found in DB`);
+      return res.status(404).json({ message: "[NOT_FOUND] Quiz not found." });
     }
+
+    console.log(`>>> [QUIZ_FOUND] DayID: ${quiz.dayId}, ModuleID: ${quiz.moduleId}`);
 
     const submissionDeadline = getQuizSubmissionDeadline(quiz);
     if (submissionDeadline && new Date() > submissionDeadline) {
-      await session.abortTransaction();
+      console.log(`>>> [EXPIRED] Deadline was ${submissionDeadline}`);
       return res.status(403).json({
-        message: "This quiz has closed for the day.",
+        message: "[EXPIRED] This quiz has closed for the day.",
         submissionDeadline,
       });
     }
@@ -174,14 +176,24 @@ exports.submitQuiz = async (req, res) => {
     const submittedAnswers = Array.isArray(req.body.answers)
       ? req.body.answers
       : [];
+    
+    console.log(`>>> [ANSWERS_RECV] Count: ${submittedAnswers.length}`);
+
+    // Ensure we have questions before mapping
+    if (!quiz.questions || quiz.questions.length === 0) {
+      console.log(`>>> [DATA_ERR] Quiz has no questions array`);
+      return res.status(400).json({ message: "[DATA_ERR] Quiz has no questions." });
+    }
+
     const normalizedAnswers = quiz.questions.map((question, questionIndex) => {
       const rawAnswer = submittedAnswers[questionIndex];
-      const selectedIndex =
-        typeof rawAnswer === "number"
-          ? rawAnswer
-          : rawAnswer && typeof rawAnswer.selectedIndex === "number"
-            ? rawAnswer.selectedIndex
-            : null;
+      
+      let selectedIndex = -1; // Default to -1 (skipped) instead of null
+      if (typeof rawAnswer === "number") {
+        selectedIndex = rawAnswer;
+      } else if (rawAnswer && typeof rawAnswer.selectedIndex === "number") {
+        selectedIndex = rawAnswer.selectedIndex;
+      }
 
       return {
         questionIndex,
@@ -191,67 +203,121 @@ exports.submitQuiz = async (req, res) => {
 
     const score = normalizedAnswers.reduce((total, answer) => {
       const question = quiz.questions[answer.questionIndex];
-      if (!question || answer.selectedIndex === null) return total;
+      if (!question || answer.selectedIndex === -1) return total; // Check for -1
       return answer.selectedIndex === question.correctIndex
-        ? total + question.points
+        ? total + (question.points || 0)
         : total;
     }, 0);
 
     const maxScore = quiz.questions.reduce(
-      (total, question) => total + question.points,
+      (total, question) => total + (question.points || 0),
       0,
     );
 
-    // Atomic: Increment score and record attempt in same transaction
-    const progressUpdate = await Progress.findOneAndUpdate(
-      {
-        userId: req.user._id,
-        moduleId: quiz.moduleId,
-        attemptedQuizIds: { $ne: quiz._id },
-      },
-      {
-        $setOnInsert: { userId: req.user._id, moduleId: quiz.moduleId },
-        $addToSet: { attemptedQuizIds: quiz._id },
-        $push: { quizScores: { dayId: quiz.dayId, score } },
-      },
-      { new: true, upsert: true, runValidators: true, session },
-    );
+    const userAnswers = normalizedAnswers.map((a) => a.selectedIndex);
+    console.log(`>>> [SCORE_CALC] Score: ${score}/${maxScore}`);
 
-    if (!progressUpdate) {
-      await session.abortTransaction();
-      return res
-        .status(409)
-        .json({ message: "This quiz can only be submitted once." });
+    // 1. Ensure progress record exists
+    let progress = await Progress.findOne({
+      userId: req.user._id,
+      moduleId: quiz.moduleId,
+    });
+
+    if (!progress) {
+      console.log(`>>> [PROGRESS_MISSING] Creating new progress record`);
+      try {
+        progress = await Progress.create({
+          userId: req.user._id,
+          moduleId: quiz.moduleId,
+          completedDays: [],
+          attemptedQuizIds: [],
+          quizScores: [],
+        });
+      } catch (createErr) {
+        if (createErr.code === 11000) {
+          console.log(`>>> [PROGRESS_RACE] Record created by another request, fetching...`);
+          progress = await Progress.findOne({
+            userId: req.user._id,
+            moduleId: quiz.moduleId,
+          });
+        } else {
+          console.error(`>>> [CREATE_ERR]`, createErr);
+          throw new Error(`[CREATE_ERR] ${createErr.message}`);
+        }
+      }
     }
 
+    if (!progress) {
+      console.log(`>>> [INIT_ERR] Failed to initialize progress record after checks`);
+      throw new Error("[INIT_ERR] Failed to initialize progress record.");
+    }
+
+    // 2. Check if already attempted
+    const alreadyAttempted = progress.attemptedQuizIds.some(
+      (id) => id && id.toString() === quiz._id.toString(),
+    );
+
+    if (alreadyAttempted) {
+      console.log(`>>> [CONFLICT] User already attempted Quiz ${quiz._id}`);
+      return res
+        .status(409)
+        .json({ message: "[CONFLICT] This quiz can only be submitted once." });
+    }
+
+    // 3. Update progress record
+    console.log(`>>> [UPDATING_PROGRESS] Adding quiz score and day completion`);
+    progress.attemptedQuizIds.push(quiz._id);
+    if (quiz.dayId) {
+      progress.completedDays.addToSet(quiz.dayId);
+      progress.quizScores.push({
+        dayId: quiz.dayId,
+        score,
+        userAnswers,
+      });
+    }
+
+    try {
+      await progress.save();
+      console.log(`>>> [SAVE_SUCCESS] Progress saved`);
+    } catch (saveErr) {
+      console.error(`>>> [SAVE_ERR]`, saveErr);
+      throw new Error(`[SAVE_ERR] ${saveErr.message}`);
+    }
+
+    // 4. Update user total score
+    console.log(`>>> [UPDATING_USER] Incrementing score by ${score}`);
     const updatedUser = await User.findByIdAndUpdate(
       req.user._id,
       { $inc: { totalScore: score } },
-      { new: true, runValidators: true, session },
+      { new: true, runValidators: true },
     );
 
     if (!updatedUser) {
-      await session.abortTransaction();
+      console.log(`>>> [AUTH_ERR] User not found during findByIdAndUpdate`);
       return res
         .status(401)
-        .json({ message: "User not found. Token may be stale." });
+        .json({ message: "[AUTH_ERR] User not found during update." });
     }
 
-    await updateLeaderboardEntry({
-      user: updatedUser,
-      moduleId: quiz.moduleId,
-      score,
-      session,
-    });
+    console.log(`>>> [LB_UPDATE] Attempting leaderboard updates`);
+    // 5. Leaderboard updates (non-critical)
+    try {
+      await updateLeaderboardEntry({
+        user: updatedUser,
+        moduleId: quiz.moduleId,
+        score,
+      });
 
-    await updateLeaderboardEntry({
-      user: updatedUser,
-      moduleId: null,
-      score,
-      session,
-    });
+      await updateLeaderboardEntry({
+        user: updatedUser,
+        moduleId: null,
+        score,
+      });
+    } catch (lbError) {
+      console.error("Leaderboard update failed:", lbError.message);
+    }
 
-    await session.commitTransaction();
+    console.log(`>>> [SUBMIT_DONE] Success`);
     res.status(201).json({
       message: "Quiz submitted successfully.",
       score,
@@ -260,16 +326,13 @@ exports.submitQuiz = async (req, res) => {
       percentage: maxScore === 0 ? 0 : Math.round((score / maxScore) * 100),
     });
   } catch (error) {
-    await session.abortTransaction();
-    if (error.code === 11000)
-      return res
-        .status(409)
-        .json({ message: "This quiz can only be submitted once." });
+    console.error(">>> [FATAL_ERR] Quiz submission error:", error);
     res
       .status(400)
-      .json({ message: "Failed to submit quiz.", error: error.message });
-  } finally {
-    session.endSession();
+      .json({ 
+        message: `Submission failed: ${error.message}`, 
+        error: error.message 
+      });
   }
 };
 

@@ -29,8 +29,10 @@ export function ModulesProvider({ children }) {
       return;
     }
 
-    setLoading(true);
-    setError('');
+    if (modules.length === 0) {
+      setLoading(true);
+    }
+    setError("");
 
     try {
       const [moduleList, progressList, quizList] = await Promise.all([
@@ -39,15 +41,17 @@ export function ModulesProvider({ children }) {
         quizService.listQuizzes(),
       ]);
 
-      setModules(moduleList.map((module, index) => normalizeModule(module, index)));
+      setModules(
+        moduleList.map((module, index) => normalizeModule(module, index)),
+      );
       setProgress(progressList);
       setQuizzes(quizList);
     } catch (err) {
-      setError(err.message || 'Failed to load learning data.');
+      setError(err.message || "Failed to load learning data.");
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, modules.length]);
 
   useEffect(() => {
     loadData();
@@ -65,45 +69,61 @@ export function ModulesProvider({ children }) {
     await loadData();
   };
 
-  const getProgressForModule = (moduleId) =>
-    progress.find(
-      (record) =>
-        record.moduleId?._id?.toString() === moduleId ||
-        record.moduleId?.toString() === moduleId
-    );
+  const getProgressForModule = useCallback(
+    (moduleId) =>
+      progress.find(
+        (record) =>
+          record.moduleId?._id?.toString() === moduleId ||
+          record.moduleId?.toString() === moduleId,
+      ),
+    [progress],
+  );
 
-  const getQuizzesForModule = (moduleId) =>
-    quizzes.filter(
-      (quiz) =>
-        quiz.moduleId?._id?.toString() === moduleId ||
-        quiz.moduleId?.toString() === moduleId
-    );
+  const getQuizzesForModule = useCallback(
+    (moduleId) =>
+      quizzes.filter(
+        (quiz) =>
+          quiz.moduleId?._id?.toString() === moduleId ||
+          quiz.moduleId?.toString() === moduleId,
+      ),
+    [quizzes],
+  );
 
   const completeDay = async (moduleId, dayId) => {
-    const module = modules.find((entry) => entry.id === moduleId);
-    const progressRecord = getProgressForModule(moduleId);
+    // Fetch latest progress directly to avoid stale state issues
+    const currentProgress = await progressService.getMyProgress();
+    const progressRecord = currentProgress.find(
+      (record) =>
+        record.moduleId?._id?.toString() === moduleId ||
+        record.moduleId?.toString() === moduleId,
+    );
 
-    if (!module || !progressRecord) {
-      throw new Error('Progress record not found. Register for the module first.');
+    if (!progressRecord) {
+      throw new Error(
+        "Progress record not found. Register for the module first.",
+      );
     }
 
+    const module = modules.find((entry) => entry.id === moduleId);
     const updated = await progressService.completeDay(
       progressRecord,
       dayId,
-      module.dayCount
+      module?.dayCount || 0,
     );
 
-    setProgress((prev) =>
-      prev.map((record) => (record._id === updated._id ? updated : record))
-    );
-
+    await loadData();
     return updated;
   };
 
   const submitQuiz = async (quizId, answers) => {
-    const result = await quizService.submitQuiz(quizId, answers);
-    await loadData();
-    return result;
+    try {
+      const result = await quizService.submitQuiz(quizId, answers);
+      await loadData();
+      return result;
+    } catch (error) {
+      console.error("submitQuiz context error:", error);
+      throw error;
+    }
   };
 
   const value = {

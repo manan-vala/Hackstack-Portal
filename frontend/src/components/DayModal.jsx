@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   BookOpen,
@@ -78,6 +78,13 @@ function DailyQuiz({
   const [viewMode, setViewMode] = useState(
     quizAlreadyTaken ? "results" : "start",
   );
+
+  // Sync viewMode if dailyQuizAttempt is loaded after initial mount
+  useEffect(() => {
+    if (quizAlreadyTaken) {
+      setViewMode("results");
+    }
+  }, [quizAlreadyTaken]);
 
   const scoreFromAnswers = answers.reduce((sum, answer, index) => {
     const question = questions[index];
@@ -494,6 +501,7 @@ function DayModal({
 
                   {hasQuiz ? (
                     <DailyQuiz
+                      key={dailyQuizAttempt ? "completed" : "pending"}
                       questions={chapter.quiz}
                       onSubmit={handleQuizSubmit}
                       previousScore={dailyScore}
