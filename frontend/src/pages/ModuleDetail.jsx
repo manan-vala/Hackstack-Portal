@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -38,65 +38,59 @@ function ModuleDetail() {
     [modules, slug],
   );
 
-  const [openDay, setOpenDay] = useState(null);
+  const [openDayId, setOpenDayId] = useState(null);
   const [actionError, setActionError] = useState("");
   const [pendingDayId, setPendingDayId] = useState("");
 
-  if (loading) {
-    return (
-      <div className="modules-shell">
-        <div className="modules-panel modules-empty-state">
-          Loading module...
-        </div>
-      </div>
-    );
-  }
+  const isRegistered = module ? registeredModuleIds.includes(module.id) : false;
+  const moduleDays = module?.days || [];
+  const progress = module ? getProgressForModule(module.id) : null;
 
-  if (!module) {
-    return (
-      <div className="modules-shell">
-        <div className="modules-panel modules-empty-state">
-          <p>Module not found.</p>
-          <Link to="/modules" className="module-back-link">
-            <ArrowLeft size={16} />
-            Back to modules
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const completedSet = useMemo(
+    () => new Set((progress?.completedDays || []).map((id) => id.toString())),
+    [progress?.completedDays],
+  );
 
-  const isRegistered = registeredModuleIds.includes(module.id);
-  const moduleDays = module.days || [];
-  const progress = getProgressForModule(module.id);
-  const completedSet = new Set(
-    (progress?.completedDays || []).map((id) => id.toString()),
+  const attemptsByQuizDayId = useMemo(
+    () =>
+      new Map(
+        (progress?.quizScores || []).map((entry) => [
+          entry.dayId?.toString(),
+          entry,
+        ]),
+      ),
+    [progress?.quizScores],
   );
-  const scoreByQuizDayId = new Map(
-    (progress?.quizScores || []).map((entry) => [
-      entry.dayId?.toString(),
-      entry.score,
-    ]),
+
+  const attemptedQuizIds = useMemo(
+    () => new Set((progress?.attemptedQuizIds || []).map((id) => id.toString())),
+    [progress?.attemptedQuizIds],
   );
-  const attemptedQuizIds = new Set(
-    (progress?.attemptedQuizIds || []).map((id) => id.toString()),
-  );
+
   const moduleQuizzes = useMemo(
     () =>
-      [...getQuizzesForModule(module.id)].sort((left, right) => {
-        const leftTime = left?.createdAt ? new Date(left.createdAt).getTime() : 0;
-        const rightTime = right?.createdAt
-          ? new Date(right.createdAt).getTime()
-          : 0;
-        return leftTime - rightTime;
-      }),
-    [getQuizzesForModule, module.id],
+      module
+        ? [...getQuizzesForModule(module.id)].sort((left, right) => {
+            const leftTime = left?.createdAt
+              ? new Date(left.createdAt).getTime()
+              : 0;
+            const rightTime = right?.createdAt
+              ? new Date(right.createdAt).getTime()
+              : 0;
+            return leftTime - rightTime;
+          })
+        : [],
+    [getQuizzesForModule, module],
   );
 
   const resolvedQuizByDayId = useMemo(() => {
+    if (!module) return new Map();
+
     const exactMatches = new Map();
     const unmatchedQuizzes = [];
-    const moduleDayIds = new Set(moduleDays.map((day) => day.id).filter(Boolean));
+    const moduleDayIds = new Set(
+      moduleDays.map((day) => day.id).filter(Boolean),
+    );
 
     for (const quiz of moduleQuizzes) {
       const quizDayId = quiz.dayId?.toString();
@@ -126,35 +120,111 @@ function ModuleDetail() {
     }
 
     return resolved;
-  }, [moduleDays, moduleQuizzes]);
+  }, [module, moduleDays, moduleQuizzes]);
 
-  const enrichedDays = moduleDays.map((day, index) => {
-    const quiz = resolvedQuizByDayId.get(day.id) || null;
-    const previousDay = moduleDays[index - 1];
-    const completed = completedSet.has(day.id);
-    const locked = false;
+  const enrichedDays = useMemo(
+    () =>
+      moduleDays.map((day, index) => {
+        const quiz = resolvedQuizByDayId.get(day.id) || null;
+        const completed = completedSet.has(day.id);
+        const locked = false;
 
-    return {      ...day,
-      quiz,
-      questionCount: quiz?.questions?.length || 0,
-      totalPoints:
-        quiz?.questions?.reduce((sum, question) => sum + (question.points || 0), 0) ||
-        0,
-      completed,
-      locked,
-      summary: extractMarkdownSummary(day.contentMarkdown),
-      goals: extractMarkdownGoals(day.contentMarkdown),
-      task: extractMarkdownTask(day.contentMarkdown),
+        return {
+          ...day,
+          quiz,
+          questionCount: quiz?.questions?.length || 0,
+          totalPoints:
+            quiz?.questions?.reduce(
+              (sum, question) => sum + (question.points || 0),
+              0,
+            ) || 0,
+          completed,
+          locked,
+          summary: extractMarkdownSummary(day.contentMarkdown),
+          goals: extractMarkdownGoals(day.contentMarkdown),
+          task: extractMarkdownTask(day.contentMarkdown),
+        };
+      }),
+    [moduleDays, resolvedQuizByDayId, completedSet],
+  );
+
+  const completionPercent = useMemo(
+    () =>
+      module?.dayCount > 0
+        ? Math.round((completedSet.size / module.dayCount) * 100)
+        : 0,
+    [completedSet.size, module?.dayCount],
+  );
+
+  const finalTaskContent = useMemo(
+    () =>
+      module?.finalTask ||
+      `## Final Task\n\nBuild something that proves you understood ${module?.title || "this module"}.\n\n### Requirements\n- Complete every learning day in the module\n- Apply the concepts to a real mini project\n- Share your final submission with your mentors\n\n### Deliverable\nSubmit your project link and a short walkthrough of what you built.`,
+    [module?.finalTask, module?.title],
+  );
+
+  const freshOpenDay = useMemo(
+    () => enrichedDays.find((day) => day.id === openDayId) || null,
+    [enrichedDays, openDayId],
+  );
+
+  const { openDayQuiz, quizQuestions } = useMemo(() => {
+    const quiz =
+      freshOpenDay?.quiz || resolvedQuizByDayId.get(freshOpenDay?.id);
+    return {
+      openDayQuiz: quiz || null,
+      quizQuestions: quiz?.questions || [],
     };
-  });
+  }, [freshOpenDay, resolvedQuizByDayId]);
 
-  const completionPercent =
-    module.dayCount > 0
-      ? Math.round((completedSet.size / module.dayCount) * 100)
-      : 0;
-  const finalTaskContent =
-    module.finalTask ||
-    `## Final Task\n\nBuild something that proves you understood ${module.title}.\n\n### Requirements\n- Complete every learning day in the module\n- Apply the concepts to a real mini project\n- Share your final submission with your mentors\n\n### Deliverable\nSubmit your project link and a short walkthrough of what you built.`;
+  const openDayAttempt = useMemo(() => {
+    if (!openDayQuiz) return null;
+
+    const quizIdStr = openDayQuiz._id?.toString() || openDayQuiz.id;
+    const quizDayIdStr = openDayQuiz.dayId?.toString();
+
+    const result = quizDayIdStr ? attemptsByQuizDayId.get(quizDayIdStr) : null;
+    const hasAttempt =
+      (quizIdStr && attemptedQuizIds.has(quizIdStr)) || Boolean(result);
+
+    if (!hasAttempt) return null;
+
+    return {
+      score: result?.score ?? 0,
+      userAnswers: result?.userAnswers || [],
+      totalMarks:
+        openDayQuiz.questions?.reduce(
+          (sum, question) => sum + (question.points || 0),
+          0,
+        ) || 0,
+    };
+  }, [openDayQuiz, attemptedQuizIds, attemptsByQuizDayId]);
+
+  const openDayScore = openDayAttempt?.score;
+
+  if (loading) {
+    return (
+      <div className="modules-shell">
+        <div className="modules-panel modules-empty-state">
+          Loading module...
+        </div>
+      </div>
+    );
+  }
+
+  if (!module) {
+    return (
+      <div className="modules-shell">
+        <div className="modules-panel modules-empty-state">
+          <p>Module not found.</p>
+          <Link to="/modules" className="module-back-link">
+            <ArrowLeft size={16} />
+            Back to modules
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const handleDayAction = async (dayId, _score, userAnswers) => {
     if (!isRegistered) return;
@@ -166,35 +236,15 @@ function ModuleDetail() {
     try {
       if (quiz && Array.isArray(userAnswers)) {
         await submitQuiz(quiz._id, userAnswers);
+      } else {
+        await completeDay(module.id, dayId);
       }
-
-      await completeDay(module.id, dayId);
     } catch (err) {
       setActionError(err.message || "Failed to update this day.");
     } finally {
       setPendingDayId("");
     }
   };
-
-  const openDayQuiz = openDay ? resolvedQuizByDayId.get(openDay.id) : null;
-  const quizQuestions = openDayQuiz?.questions || [];
-  const openDayScore = openDayQuiz
-    ? scoreByQuizDayId.get(openDayQuiz.dayId?.toString())
-    : undefined;
-  const openDayAttempt =
-    openDay && openDayQuiz
-      ? attemptedQuizIds.has(openDayQuiz._id?.toString()) ||
-        scoreByQuizDayId.has(openDayQuiz.dayId?.toString())
-        ? {
-            score: openDayScore ?? 0,
-            totalMarks:
-              openDayQuiz.questions?.reduce(
-                (sum, question) => sum + question.points,
-                0,
-              ) || 0,
-          }
-        : null
-      : null;
 
   return (
     <div
@@ -286,7 +336,7 @@ function ModuleDetail() {
               } ${day.locked ? "is-locked" : ""}`}
               disabled={day.locked}
               onClick={() => {
-                setOpenDay(day);
+                setOpenDayId(day.id);
                 setActionError("");
               }}
             >
@@ -352,19 +402,19 @@ function ModuleDetail() {
         </div>
       </section>
 
-      {openDay ? (
+      {freshOpenDay ? (
         <DayModal
           chapter={{
-            ...openDay,
+            ...freshOpenDay,
             quiz: quizQuestions,
           }}
           moduleTheme={module.theme}
-          isCompleted={completedSet.has(openDay.id)}
+          isCompleted={completedSet.has(freshOpenDay.id)}
           dailyScore={openDayScore}
           dailyQuizAttempt={openDayAttempt}
           userName={user?.username || "You"}
-          submitting={pendingDayId === openDay.id}
-          onClose={() => setOpenDay(null)}
+          submitting={pendingDayId === freshOpenDay.id}
+          onClose={() => setOpenDayId(null)}
           onComplete={handleDayAction}
         />
       ) : null}
