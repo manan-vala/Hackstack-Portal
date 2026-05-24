@@ -15,6 +15,7 @@ import {
   mockFetchModulesPublic,
   mockFetchQuizzesPublic,
 } from "./admin-api";
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const USE_MOCK = false;
 
@@ -196,7 +197,7 @@ export default function AdminDashboard() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch(`/hackstack/api/auth/logout`, { method: "POST" });
     } catch (err) {
       // Silent error
     }

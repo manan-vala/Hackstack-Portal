@@ -52,7 +52,7 @@ const Onboarding = () => {
   // Redirect if not logged in or already completed
   useEffect(() => {
     if (!loading && !user) {
-      window.location.assign('/login.html');
+      window.location.assign('/hackstack/login.html');
     }
     if (!loading && user?.profileCompleted) {
       navigate('/dashboard');

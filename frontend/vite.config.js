@@ -20,6 +20,7 @@ const adminHtmlFallback = () => ({
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/hackstack/",
   plugins: [react(), tailwindcss(), adminHtmlFallback()],
   build: {
     rollupOptions: {

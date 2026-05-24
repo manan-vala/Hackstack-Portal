@@ -1,0 +1,20 @@
+# docker-compose.yml
+version: "3.3"
+
+services:
+  hackstack_portal_frontend:
+    image: hackstack_portal_frontend
+    container_name: hackstack_portal_frontend
+    restart: always
+    build:
+      context: .
+    ports:
+      - "6033:3000"
+    env_file:
+      - .env
+    networks:
+      - frontend_default
+
+networks:
+  frontend_default:
+    external: true
