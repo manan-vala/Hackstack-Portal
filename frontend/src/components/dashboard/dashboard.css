@@ -399,6 +399,77 @@ html[data-theme="dark"] .dashboard-hero-copy {
   white-space: nowrap;
 }
 
+/* ── Profile Section ────────────────────────────────────────────── */
+.dashboard-profile-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2rem;
+  padding: 2.2rem;
+  border-radius: 1.7rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  align-items: center;
+}
+
+.dashboard-profile-avatar-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+}
+
+.dashboard-profile-avatar {
+  width: 7.5rem;
+  height: 7.5rem;
+  border-radius: 50%;
+  border: 4px solid var(--accent-soft);
+  object-fit: cover;
+  box-shadow: var(--shadow-soft);
+}
+
+.dashboard-profile-badge {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  background: var(--accent-soft);
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dashboard-profile-details {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.dashboard-profile-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.85rem 1.1rem;
+  background: var(--surface-subtle);
+  border: 1px solid var(--line);
+  border-radius: 1.1rem;
+}
+
+.dashboard-profile-field-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.dashboard-profile-field-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+
 @media (max-width: 1180px) {
   .dashboard-hero,
   .dashboard-stats,
@@ -418,5 +489,15 @@ html[data-theme="dark"] .dashboard-hero-copy {
   .dashboard-module-card-top {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .dashboard-profile-card {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 1.5rem;
+    padding: 1.5rem;
+  }
+  .dashboard-profile-details {
+    grid-template-columns: 1fr;
   }
 }

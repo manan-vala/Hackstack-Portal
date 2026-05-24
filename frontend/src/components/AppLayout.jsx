@@ -5,9 +5,11 @@ import MoonStar from "lucide-react/dist/esm/icons/moon-star";
 import SunMedium from "lucide-react/dist/esm/icons/sun-medium";
 import Sparkles from "lucide-react/dist/esm/icons/sparkles";
 import LogOut from "lucide-react/dist/esm/icons/log-out";
+import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
+import { ProfileModal } from "./ProfileModal";
 import "./applayout.css";
 
 const NAV_ITEMS = [
@@ -72,6 +74,7 @@ export function AppLayout({ children }) {
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const pageMeta = getPageMeta(location.pathname);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   return (
     <div className="portal-shell">
@@ -149,20 +152,35 @@ export function AppLayout({ children }) {
               <span>Logout</span>
             </button>
 
-            <div className="portal-user-pill">
+            <button
+              type="button"
+              className="portal-user-pill"
+              onClick={() => setIsProfileOpen(true)}
+              aria-label="View profile details"
+            >
               <div className="portal-user-avatar">
-                {(user?.username || "s").slice(0, 1).toUpperCase()}
+                {user?.avatarUrl ? (
+                  <img
+                    src={user.avatarUrl}
+                    alt={user.username || "Avatar"}
+                    style={{ width: "100%", height: "100%", borderRadius: "inherit", objectFit: "cover" }}
+                  />
+                ) : (
+                  (user?.username || "s").slice(0, 1).toUpperCase()
+                )}
               </div>
               <div className="portal-user-copy">
                 <strong>{user?.username || "student"}</strong>
                 <span>Active learner</span>
               </div>
-            </div>
+            </button>
           </div>
         </header>
 
         <main className="portal-main">{children}</main>
       </div>
+
+      <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />
     </div>
   );
 }

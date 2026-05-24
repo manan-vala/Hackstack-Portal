@@ -237,6 +237,19 @@ html[data-theme="dark"] .portal-logout-button:hover {
   gap: 0.8rem;
   border-radius: 1rem;
   padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 180ms ease;
+}
+
+.portal-user-pill:hover {
+  border-color: var(--accent);
+  background: var(--surface-subtle);
+  transform: translateY(-1px);
+}
+
+.portal-user-pill:active {
+  transform: translateY(0);
 }
 
 .portal-user-avatar {

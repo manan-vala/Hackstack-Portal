@@ -205,7 +205,12 @@ function ModuleCatalog() {
                       </summary>
                       <ul>
                         {outcomes.map((outcome) => (
-                          <li key={outcome}>{outcome}</li>
+                          <li key={outcome} className="outcome-item">
+                            <span className="outcome-icon-wrapper">
+                              <CheckCircle2 className="outcome-icon" />
+                            </span>
+                            <span className="outcome-text">{outcome}</span>
+                          </li>
                         ))}
                       </ul>
                     </details>
