@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Whitelist Portal — Hackstack</title>
+  <style>
+    :root {
+      --bg-color: #030712;
+      --card-bg: rgba(17, 24, 39, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --text-color: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent: #6366f1;
+      --accent-hover: #4f46e5;
+      --success: #10b981;
+      --success-soft: rgba(16, 185, 129, 0.15);
+      --error: #ef4444;
+      --error-soft: rgba(239, 68, 68, 0.15);
+      --badge-yes-bg: rgba(16, 185, 129, 0.15);
+      --badge-yes-text: #34d399;
+      --badge-no-bg: rgba(156, 163, 175, 0.15);
+      --badge-no-text: #d1d5db;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(99, 102, 241, 0.04) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(16, 185, 129, 0.04) 0%, transparent 40%);
+    }
+
+    .wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: justify;
+      align-items: center;
+      margin-bottom: 40px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 20px;
+    }
+
+    .header-info {
+      flex: 1;
+    }
+
+    .logo {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .title {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-color);
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .btn-logout:hover {
+      background: rgba(239, 68, 68, 0.15);
+      border-color: var(--error);
+      color: #fca5a5;
+    }
+
+    .card {
+      background: var(--card-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--card-border);
+      border-radius: 16px;
+      padding: 30px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 20px;
+      letter-spacing: -0.3px;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .form-group-input {
+      flex: 1;
+      min-width: 260px;
+    }
+
+    input[type="email"] {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: var(--text-color);
+      font-size: 14px;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+
+    input[type="email"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+    }
+
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--text-muted);
+      cursor: pointer;
+      user-select: none;
+      padding: 10px 0;
+    }
+
+    .checkbox-label input {
+      accent-color: var(--accent);
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-add {
+      background: var(--accent);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-add:hover {
+      background: var(--accent-hover);
+    }
+
+    .alert {
+      padding: 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      margin-bottom: 25px;
+    }
+
+    .alert-success {
+      background: var(--success-soft);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+    }
+
+    .alert-error {
+      background: var(--error-soft);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      color: #fca5a5;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th {
+      text-align: left;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--card-border);
+      font-weight: 600;
+    }
+
+    td {
+      padding: 16px;
+      font-size: 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+      color: var(--text-color);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .badge-yes {
+      background: var(--badge-yes-bg);
+      color: var(--badge-yes-text);
+    }
+
+    .badge-no {
+      background: var(--badge-no-bg);
+      color: var(--badge-no-text);
+    }
+
+    .actions-cell {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn-action {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text-color);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn-action:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .btn-danger {
+      color: #fca5a5;
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 68, 68, 0.1);
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 30px 10px;
+      font-size: 14px;
+    }
+
+    form {
+      display: inline;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <header>
+      <div class="header-info">
+        <div class="logo">Hackstack Administration</div>
+        <h1 class="title"></h1>
+      </div>
+      <a href="/admin-whitelist/logout" class="btn-logout">Logout</a>
+    </header>
+
+    <% if (error) { %>
+      <div class="alert alert-error">
+        <%= error %>
+      </div>
+    <% } %>
+
+    <% if (success) { %>
+      <div class="alert alert-success">
+        <%= success %>
+      </div>
+    <% } %>
+
+    <!-- Add Admin Form -->
+    <div class="card">
+      <div class="card-title">Whitelist a Google Account</div>
+      <form action="/admin-whitelist/add" method="POST">
+        <div class="form-row">
+          <div class="form-group-input">
+            <input type="email" name="email" placeholder="e.g. user@gmail.com" required autocomplete="off">
+          </div>
+          <div>
+            <label class="checkbox-label">
+              <input type="checkbox" name="canDelete">
+              Allow Deletion Access
+            </label>
+          </div>
+          <div>
+            <button type="submit" class="btn-add">Add Account</button>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <!-- Whitelisted Accounts Table -->
+    <div class="card" style="padding: 10px 0;">
+      <div class="card-title" style="padding: 20px 30px 10px 30px; margin-bottom: 0;">Whitelisted Accounts</div>
+      <table>
+        <thead>
+          <tr>
+            <th>Google Email</th>
+            <th>Delete Access</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (list && list.length > 0) { %>
+            <% list.forEach(function(item) { %>
+              <tr>
+                <td style="font-weight: 500;"><%= item.email %></td>
+                <td>
+                  <% if (item.canDelete) { %>
+                    <span class="badge badge-yes">Active (can delete)</span>
+                  <% } else { %>
+                    <span class="badge badge-no">View & Modify only</span>
+                  <% } %>
+                </td>
+                <td>
+                  <div class="actions-cell">
+                    <!-- Toggle delete permission -->
+                    <form action="/admin-whitelist/toggle-delete/<%= item._id %>" method="POST">
+                      <button type="submit" class="btn-action">
+                        <%= item.canDelete ? 'Revoke Delete' : 'Grant Delete' %>
+                      </button>
+                    </form>
+                    <!-- Remove from whitelist -->
+                    <form action="/admin-whitelist/remove/<%= item._id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove <%= item.email %>?');">
+                      <button type="submit" class="btn-action btn-danger">Remove</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="3" class="empty-state">No whitelisted admin accounts found. Add one above!</td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

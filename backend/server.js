@@ -29,7 +29,12 @@ const corsOrigin = (origin, callback) => {
     ].filter(Boolean),
   );
 
-  if (!origin || allowed.has(origin)) {
+  if (
+    !origin ||
+    allowed.has(origin) ||
+    origin.startsWith("http://localhost:") ||
+    origin.startsWith("http://127.0.0.1:")
+  ) {
     return callback(null, true);
   }
   return callback(new Error(`CORS blocked origin: ${origin}`));
@@ -37,7 +42,12 @@ const corsOrigin = (origin, callback) => {
 
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json()); // Parses incoming JSON payloads
+app.use(express.urlencoded({ extended: true })); // Parses URL-encoded form data (EJS forms)
 app.use(cookieParser()); // Parse cookies
+
+const path = require("path");
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
 
 // Mount API Routes
 app.use("/api/modules", moduleRoutes);
@@ -49,6 +59,10 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/notifications", notificationRoutes);
+
+// Mount EJS Whitelist routes
+const whitelistRoutes = require("./routes/whitelistRoutes");
+app.use("/admin-whitelist", whitelistRoutes);
 
 // Global Error Handler (Optional but recommended)
 app.use((err, req, res, next) => {
