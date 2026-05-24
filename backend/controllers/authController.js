@@ -223,3 +223,19 @@ exports.adminLogin = (req, res) => {
     user: { username, isAdmin: true, canDelete: true },
   });
 };
+
+exports.getColleges = async (req, res) => {
+  try {
+    const colleges = await User.distinct('college', {
+      college: { $exists: true, $ne: '' }
+    });
+    const filteredColleges = colleges
+      .filter((c) => typeof c === 'string' && c.trim() !== '')
+      .map((c) => c.trim());
+    const uniqueColleges = Array.from(new Set(filteredColleges)).sort();
+    res.json(uniqueColleges);
+  } catch (error) {
+    console.error('Failed to fetch colleges list:', error);
+    res.status(500).json({ message: 'Failed to fetch colleges list.' });
+  }
+};

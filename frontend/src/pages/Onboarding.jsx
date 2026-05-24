@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
@@ -31,6 +31,9 @@ const Onboarding = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [collegesList, setCollegesList] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const collegeRef = useRef(null);
 
   // Pre-fill email and name from user's Google account
   useEffect(() => {
@@ -51,6 +54,49 @@ const Onboarding = () => {
       navigate('/dashboard');
     }
   }, [loading, user, navigate]);
+
+  // Fetch existing colleges list for suggestions
+  useEffect(() => {
+    async function fetchColleges() {
+      try {
+        const data = await authService.getColleges();
+        setCollegesList(data);
+      } catch (err) {
+        console.error("Failed to load college suggestions:", err);
+      }
+    }
+    fetchColleges();
+  }, []);
+
+  // Handle click outside suggestions dropdown
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (collegeRef.current && !collegeRef.current.contains(event.target)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Filter college list based on user input
+  const filteredColleges = useMemo(() => {
+    const query = form.college.trim().toLowerCase();
+    if (!query) {
+      return collegesList.slice(0, 6);
+    }
+    return collegesList
+      .filter((c) => c.toLowerCase().includes(query) && c.toLowerCase() !== query)
+      .slice(0, 6);
+  }, [form.college, collegesList]);
+
+  const handleSelectCollege = (collegeName) => {
+    setForm((prev) => ({ ...prev, college: collegeName }));
+    setErrors((prev) => ({ ...prev, college: '' }));
+    setShowSuggestions(false);
+  };
 
   // Debounced username check
   const checkUsernameRef = useRef(
@@ -203,18 +249,34 @@ const Onboarding = () => {
             </span>
           </div>
 
-          <div className="onboarding-field">
+          <div className="onboarding-field" ref={collegeRef}>
             <label htmlFor="onb-college">College / Institution</label>
-            <input
-              id="onb-college"
-              type="text"
-              name="college"
-              value={form.college}
-              onChange={handleChange}
-              placeholder="e.g. IIT Guwahati"
-              className={errors.college ? 'is-error' : ''}
-              autoComplete="organization"
-            />
+            <div style={{ position: 'relative', width: '100%' }}>
+              <input
+                id="onb-college"
+                type="text"
+                name="college"
+                value={form.college}
+                onChange={handleChange}
+                onFocus={() => setShowSuggestions(true)}
+                placeholder="e.g. IIT Guwahati"
+                className={errors.college ? 'is-error' : ''}
+                autoComplete="off"
+              />
+              {showSuggestions && filteredColleges.length > 0 && (
+                <div className="onboarding-suggestions-dropdown">
+                  {filteredColleges.map((col) => (
+                    <div
+                      key={col}
+                      className="onboarding-suggestion-item"
+                      onClick={() => handleSelectCollege(col)}
+                    >
+                      {col}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
             <span className={`onboarding-field-hint ${errors.college ? 'is-error' : ''}`}>
               {errors.college || ''}
             </span>

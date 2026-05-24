@@ -17,6 +17,7 @@ router.get('/me', (req, res, next) => {
 
 router.post('/complete-profile', auth, authCtrl.completeProfile);
 router.get('/check-username', authCtrl.checkUsername);
+router.get('/colleges', authCtrl.getColleges);
 
 // Clears the HttpOnly session cookie
 router.post('/logout', authCtrl.logout);

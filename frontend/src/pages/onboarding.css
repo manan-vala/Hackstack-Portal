@@ -221,3 +221,33 @@
     grid-template-columns: 1fr;
   }
 }
+
+.onboarding-suggestions-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #ffffff;
+  border: 2px solid #c8d4e8;
+  border-top: none;
+  border-radius: 0 0 4px 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 10;
+  box-shadow: 4px 4px 0 #b0bdd4;
+}
+
+.onboarding-suggestion-item {
+  font-family: 'VT323', monospace;
+  font-size: 1.15rem;
+  padding: 8px 14px;
+  color: #1a2340;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.onboarding-suggestion-item:hover {
+  background: #1a2340;
+  color: #ffffff;
+}
+

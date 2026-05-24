@@ -123,6 +123,8 @@ router.get('/users-progress', adminAuth, async (req, res) => {
         username: user.username,
         email: user.email,
         avatarUrl: user.avatarUrl,
+        college: user.college,
+        year: user.year,
         totalScore: dynamicTotalScore,
         modulesProgress: userModules
       };

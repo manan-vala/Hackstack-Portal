@@ -1,7 +1,7 @@
 // src/pages/admin/AdminUsers.jsx
 // View and monitor user info and module progress.
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { getAdminUsersProgress, mockGetAdminUsersProgress } from "./admin-api";
@@ -15,6 +15,8 @@ export default function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCollege, setSelectedCollege] = useState("");
+  const [selectedYear, setSelectedYear] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -48,12 +50,32 @@ export default function AdminUsers() {
     };
   }, []);
 
+  // Extract unique colleges/institutes dynamically
+  const uniqueColleges = useMemo(() => {
+    const list = users
+      .map((u) => u.college)
+      .filter((c) => typeof c === "string" && c.trim() !== "");
+    return Array.from(new Set(list)).sort();
+  }, [users]);
+
+  // Extract unique years of study dynamically
+  const uniqueYears = useMemo(() => {
+    const list = users
+      .map((u) => u.year)
+      .filter((y) => typeof y === "string" && y.trim() !== "");
+    return Array.from(new Set(list)).sort();
+  }, [users]);
+
   const filteredUsers = users.filter((user) => {
     const query = searchQuery.toLowerCase();
-    return (
+    const matchesSearch =
       user.username.toLowerCase().includes(query) ||
-      (user.email && user.email.toLowerCase().includes(query))
-    );
+      (user.email && user.email.toLowerCase().includes(query));
+
+    const matchesCollege = !selectedCollege || user.college === selectedCollege;
+    const matchesYear = !selectedYear || user.year === selectedYear;
+
+    return matchesSearch && matchesCollege && matchesYear;
   });
 
   return (
@@ -94,7 +116,7 @@ export default function AdminUsers() {
         </div>
 
         {/* ── Search & Actions Bar ────────────────────────────────────── */}
-        <div className="mb-6 flex gap-4">
+        <div className="mb-6 space-y-4">
           <div className="relative flex-1">
             <span className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-500">
               <svg
@@ -119,6 +141,69 @@ export default function AdminUsers() {
               className="w-full bg-gray-900 border border-gray-800 text-white text-sm rounded-xl pl-11 pr-4 py-3
                 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition"
             />
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            {/* Institute Filter */}
+            <div className="flex-1">
+              <label htmlFor="college-filter" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                Institute / College
+              </label>
+              <select
+                id="college-filter"
+                value={selectedCollege}
+                onChange={(e) => setSelectedCollege(e.target.value)}
+                className="w-full bg-gray-900 border border-gray-800 text-white text-sm rounded-xl px-4 py-2.5
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition cursor-pointer"
+              >
+                <option value="">All Institutes</option>
+                {uniqueColleges.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Year of Study Filter */}
+            <div className="w-full sm:w-48">
+              <label htmlFor="year-filter" className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1.5">
+                Year of Study
+              </label>
+              <select
+                id="year-filter"
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full bg-gray-900 border border-gray-800 text-white text-sm rounded-xl px-4 py-2.5
+                  focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition cursor-pointer"
+              >
+                <option value="">All Years</option>
+                {uniqueYears.map((y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Clear Filters Button (only shows when filters are active) */}
+            {(selectedCollege || selectedYear || searchQuery) && (
+              <div className="flex items-end">
+                <button
+                  onClick={() => {
+                    setSelectedCollege("");
+                    setSelectedYear("");
+                    setSearchQuery("");
+                  }}
+                  className="w-full sm:w-auto h-[42px] px-4 text-xs font-semibold text-gray-400 hover:text-indigo-400 transition-colors rounded-xl bg-gray-900 border border-gray-800 hover:border-indigo-500/30 flex items-center justify-center gap-1.5"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Reset
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
@@ -214,6 +299,26 @@ export default function AdminUsers() {
                           {user.username}
                         </h3>
                         <p className="text-gray-400 text-xs mt-0.5">{user.email}</p>
+                        {(user.college || user.year) && (
+                          <div className="flex flex-wrap gap-x-2 gap-y-1 mt-2 text-[10px] text-gray-400">
+                            {user.college && (
+                              <span className="flex items-center gap-1 bg-gray-800/60 border border-gray-800/80 rounded-md px-1.5 py-0.5">
+                                <svg className="w-3 h-3 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                </svg>
+                                {user.college}
+                              </span>
+                            )}
+                            {user.year && (
+                              <span className="flex items-center gap-1 bg-gray-800/60 border border-gray-800/80 rounded-md px-1.5 py-0.5">
+                                <svg className="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                                </svg>
+                                {user.year}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
 

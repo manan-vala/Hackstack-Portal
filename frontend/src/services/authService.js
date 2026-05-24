@@ -50,6 +50,18 @@ export const authService = {
     return response.json();
   },
 
+  getColleges: async () => {
+    const response = await fetch(`${API_URL}/auth/colleges`, {
+      method: 'GET',
+      credentials: 'include',
+      headers: { Accept: 'application/json' },
+    });
+    if (!response.ok) {
+      throw new Error('Failed to fetch colleges suggestions.');
+    }
+    return response.json();
+  },
+
   logout: async () => {
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
