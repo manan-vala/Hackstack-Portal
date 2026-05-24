@@ -254,3 +254,40 @@ export async function mockGetAdminUsersProgress() {
     },
   ];
 }
+
+export async function getAdminNotifications() {
+  const res = await fetch(`${BASE_URL}/notifications/admin`, {
+    credentials: "include",
+    headers: getAdminHeaders(),
+  });
+  return parseJsonResponse(res, "Failed to load notifications");
+}
+
+export async function createAdminNotification(data) {
+  const res = await fetch(`${BASE_URL}/notifications/admin`, {
+    method: "POST",
+    credentials: "include",
+    headers: getAdminHeaders(),
+    body: JSON.stringify(data),
+  });
+  return parseJsonResponse(res, "Failed to create notification");
+}
+
+export async function toggleAdminNotification(id, data) {
+  const res = await fetch(`${BASE_URL}/notifications/admin/${id}`, {
+    method: "PATCH",
+    credentials: "include",
+    headers: getAdminHeaders(),
+    body: JSON.stringify(data),
+  });
+  return parseJsonResponse(res, "Failed to update notification");
+}
+
+export async function deleteAdminNotification(id) {
+  const res = await fetch(`${BASE_URL}/notifications/admin/${id}`, {
+    method: "DELETE",
+    credentials: "include",
+    headers: getAdminHeaders(),
+  });
+  return parseJsonResponse(res, "Failed to delete notification");
+}

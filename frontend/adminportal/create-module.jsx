@@ -106,6 +106,7 @@ export default function CreateModule() {
   const [moduleNumber, setModuleNumber] = useState(1);
   const [moduleName, setModuleName] = useState("");
   const [learningPoints, setLearningPoints] = useState("");
+  const [tempInfo, setTempInfo] = useState("");
   const [finalAssessment, setFinalAssessment] = useState("");
   const [finalAssessmentFileName, setFinalAssessmentFileName] = useState("");
   const [days, setDays] = useState([makeDay(0)]);
@@ -306,6 +307,7 @@ export default function CreateModule() {
         learningOutcomes: outcomes,
         difficulty: `${preparedDays.length}-day guided stack`,
         finalTask: finalAssessment.trim(),
+        tempInfo: tempInfo.trim(),
         isPublished: true,
         chapters: [
           {
@@ -357,6 +359,7 @@ export default function CreateModule() {
       setModuleNumber(Number(moduleNumber) + 1);
       setModuleName("");
       setLearningPoints("");
+      setTempInfo("");
       setFinalAssessment("");
       setFinalAssessmentFileName("");
       setDays([makeDay(0)]);
@@ -461,6 +464,19 @@ export default function CreateModule() {
 Build reusable React components
 Manage state with hooks
 Connect pages to real APIs`}
+                className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30"
+              />
+            </label>
+
+            <label className="mt-4 block">
+              <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-gray-400">
+                Temporary info (meets, submission details, etc.)
+              </span>
+              <textarea
+                value={tempInfo}
+                onChange={(event) => setTempInfo(event.target.value)}
+                rows={3}
+                placeholder="e.g. 💻 Google Meet link: meet.google.com/abc-defg-hij | 📅 Submit capstone by Sunday 10 PM."
                 className="w-full rounded-lg border border-gray-700 bg-gray-950 px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-gray-600 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30"
               />
             </label>

@@ -21,7 +21,8 @@ const moduleSchema = new mongoose.Schema(
 		difficulty: { type: String },
 		week: { type: Number },
 		learningOutcomes: [{ type: String }],
-		finalTask: { type: String, default: '' }
+		finalTask: { type: String, default: '' },
+		tempInfo: { type: String, default: '' }
 	},
 	{ timestamps: true }
 );

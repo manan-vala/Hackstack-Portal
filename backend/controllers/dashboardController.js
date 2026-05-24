@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const Progress = require('../models/Progress');
 const Quiz = require('../models/Quiz');
+const Notification = require('../models/Notification');
 
 const countModuleDays = (moduleDoc) => {
   if (!moduleDoc?.chapters) return 0;
@@ -23,11 +24,12 @@ exports.getDashboard = async (req, res) => {
     const registeredModules = user.registeredModules || [];
     const moduleIds = registeredModules.map((moduleDoc) => moduleDoc._id);
 
-    const [progressRecords, quizzes] = await Promise.all([
+    const [progressRecords, quizzes, activeNotifications] = await Promise.all([
       Progress.find({ userId: user._id }),
       moduleIds.length
         ? Quiz.find({ moduleId: { $in: moduleIds } })
         : Promise.resolve([]),
+      Notification.find({ active: true }).sort({ createdAt: -1 })
     ]);
 
     const progressByModule = new Map(
@@ -152,6 +154,7 @@ exports.getDashboard = async (req, res) => {
         totalDays,
       },
       modules,
+      notifications: activeNotifications
     });
   } catch (error) {
     res.status(500).json({

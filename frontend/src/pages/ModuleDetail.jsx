@@ -307,6 +307,16 @@ function ModuleDetail() {
         <div className="modules-alert modules-alert-danger">{actionError}</div>
       ) : null}
 
+      {module.tempInfo ? (
+        <div className="module-temp-info-banner">
+          <div className="module-temp-info-header">
+            <span className="module-temp-info-badge">Updates</span>
+            <h4></h4>
+          </div>
+          <p className="module-temp-info-text">{module.tempInfo}</p>
+        </div>
+      ) : null}
+
       {module.learningOutcomes.length > 0 ? (
         <section className="module-learning-strip">
           {module.learningOutcomes.map((outcome) => (

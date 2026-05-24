@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Bell, X } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { DashboardHero } from "../components/dashboard/DashboardHero";
 import { ModuleProgressCard } from "../components/dashboard/ModuleProgressCard";
@@ -10,6 +11,24 @@ function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [dismissedIds, setDismissedIds] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dismissed_notifications");
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const notifications = (dashboard?.notifications || []).filter(
+    (n) => !dismissedIds.includes(n._id)
+  );
+
+  const handleDismissNotification = (id) => {
+    const nextDismissed = [...dismissedIds, id];
+    setDismissedIds(nextDismissed);
+    localStorage.setItem("dismissed_notifications", JSON.stringify(nextDismissed));
+  };
 
   useEffect(() => {
     let isActive = true;
@@ -69,6 +88,28 @@ function Dashboard() {
       {error ? (
         <div className="dashboard-alert dashboard-alert-error">{error}</div>
       ) : null}
+
+      {notifications.length > 0 && (
+        <div className="dashboard-notifications-container">
+          {notifications.map((notif) => (
+            <div key={notif._id} className="dashboard-notification-banner">
+              <div className="dashboard-notification-icon">
+                <Bell size={18} />
+              </div>
+              <div className="dashboard-notification-content">
+                {notif.content}
+              </div>
+              <button
+                onClick={() => handleDismissNotification(notif._id)}
+                className="dashboard-notification-dismiss"
+                aria-label="Dismiss notification"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
 
       <DashboardStats summary={summary} />
 

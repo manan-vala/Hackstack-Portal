@@ -11,6 +11,7 @@ import EditModule from "./edit-module";
 import DeleteModule from "./delete-module";
 import Leaderboard from "./leaderboard";
 import AdminUsers from "./admin-users";
+import AdminNotifications from "./admin-notifications";
 
 // ── Guard ────────────────────────────────────────────────────────────────────
 import AdminProtectedRoute from "./admin-protected-route";
@@ -76,6 +77,14 @@ export default function AdminApp() {
           element={
             <AdminProtectedRoute>
               <AdminUsers />
+            </AdminProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/notifications"
+          element={
+            <AdminProtectedRoute>
+              <AdminNotifications />
             </AdminProtectedRoute>
           }
         />
