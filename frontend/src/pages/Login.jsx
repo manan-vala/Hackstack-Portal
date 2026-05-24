@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { apiClient } from "../services/apiClient";
 
 const loginStyles = `
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323:wght@400&display=swap');
@@ -217,14 +218,8 @@ export default function Login() {
   useEffect(() => {
     const checkExistingSession = async () => {
       try {
-        const response = await fetch("/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: { Accept: "application/json" },
-        });
-        if (response.ok) {
-          navigate("/dashboard", { replace: true });
-        }
+        await apiClient.get("/auth/me");
+        navigate("/dashboard", { replace: true });
       } catch {
         // No session — stay on login page
       }

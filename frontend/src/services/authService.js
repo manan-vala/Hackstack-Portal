@@ -1,71 +1,31 @@
-// In dev, use relative /api so Vite proxies to the backend (same origin → cookies work).
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+import { apiClient } from './apiClient';
 
 export const authService = {
-  getGoogleRedirectUrl: () => `${API_URL}/auth/google`,
+  getGoogleRedirectUrl: () => apiClient.defaults.baseURL + '/auth/google',
 
   getCurrentUser: async () => {
-    const response = await fetch(`${API_URL}/auth/me`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.message || 'Session validation failed.');
-    }
-
-    return response.json();
+    const response = await apiClient.get('/auth/me');
+    return response.data;
   },
 
   completeProfile: async (profileData) => {
-    const response = await fetch(`${API_URL}/auth/complete-profile`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: {
-        'Content-Type': 'application/json',
-        Accept: 'application/json',
-      },
-      body: JSON.stringify(profileData),
-    });
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => ({}));
-      throw new Error(body.message || 'Failed to complete profile.');
-    }
-
-    return response.json();
+    const response = await apiClient.post('/auth/complete-profile', profileData);
+    return response.data;
   },
 
   checkUsername: async (username) => {
-    const response = await fetch(
-      `${API_URL}/auth/check-username?username=${encodeURIComponent(username)}`,
-      {
-        method: 'GET',
-        credentials: 'include',
-        headers: { Accept: 'application/json' },
-      }
+    const response = await apiClient.get(
+      `/auth/check-username?username=${encodeURIComponent(username)}`
     );
-    return response.json();
+    return response.data;
   },
 
   getColleges: async () => {
-    const response = await fetch(`${API_URL}/auth/colleges`, {
-      method: 'GET',
-      credentials: 'include',
-      headers: { Accept: 'application/json' },
-    });
-    if (!response.ok) {
-      throw new Error('Failed to fetch colleges suggestions.');
-    }
-    return response.json();
+    const response = await apiClient.get('/auth/colleges');
+    return response.data;
   },
 
   logout: async () => {
-    await fetch(`${API_URL}/auth/logout`, {
-      method: 'POST',
-      credentials: 'include',
-    }).catch(() => {});
+    await apiClient.post('/auth/logout').catch(() => {});
   },
 };

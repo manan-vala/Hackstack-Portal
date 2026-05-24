@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/authService';
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+import { apiClient } from '../services/apiClient';
 
 const AuthCallback = () => {
   const navigate = useNavigate();
@@ -19,8 +19,8 @@ const AuthCallback = () => {
         } else {
           // Check if this user is a whitelisted admin
           try {
-            const adminRes = await fetch(`/hackstack/api/auth/admin-check`);
-            const adminData = await adminRes.json();
+            const adminRes = await apiClient.get('/auth/admin-check');
+            const adminData = adminRes.data;
             
             if (adminData.authorized) {
               localStorage.setItem("jwt", adminData.token);
@@ -38,7 +38,7 @@ const AuthCallback = () => {
           navigate('/dashboard');
         }
       } catch (err) {
-        navigate('/login.html?error=auth_failed');
+        navigate('/login?error=auth_failed');
       }
     };
 

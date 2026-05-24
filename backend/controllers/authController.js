@@ -18,7 +18,7 @@ const getCallbackUrl = () => {
 };
 
 const getFrontendUrl = () =>
-  (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+  (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '') + '/hackstack';
 
 // Cleanup expired states every 5 minutes
 setInterval(() => {
@@ -51,15 +51,15 @@ exports.handleGoogleCallback = async (req, res) => {
 
   if (error) {
     console.error('Google OAuth denied:', error);
-    return res.redirect(`${frontendUrl}/login.html?error=auth_denied`);
+    return res.redirect(`${frontendUrl}/login?error=auth_denied`);
   }
 
   if (!code) {
-    return res.redirect(`${frontendUrl}/login.html?error=missing_code`);
+    return res.redirect(`${frontendUrl}/login?error=missing_code`);
   }
 
   if (!state || !stateStore.has(state)) {
-    return res.redirect(`${frontendUrl}/login.html?error=invalid_state`);
+    return res.redirect(`${frontendUrl}/login?error=invalid_state`);
   }
   stateStore.delete(state);
 
@@ -81,7 +81,7 @@ exports.handleGoogleCallback = async (req, res) => {
 
     if (!accessToken) {
       console.error('Google token exchange failed: no access_token');
-      return res.redirect(`${frontendUrl}/login.html?error=auth_failed`);
+      return res.redirect(`${frontendUrl}/login?error=auth_failed`);
     }
 
     // Fetch user profile from Google
@@ -124,7 +124,7 @@ exports.handleGoogleCallback = async (req, res) => {
     res.redirect(`${frontendUrl}/auth-callback`);
   } catch (err) {
     console.error('Google Auth Error:', err.response?.data || err.message);
-    res.redirect(`${frontendUrl}/login.html?error=auth_failed`);
+    res.redirect(`${frontendUrl}/login?error=auth_failed`);
   }
 };
 
