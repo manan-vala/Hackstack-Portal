@@ -23,11 +23,15 @@ const Onboarding = () => {
     username: '',
     college: '',
     year: '',
+    rollNumber: '',
+    programme: '',
+    countryCode: '+91',
     mobileNumber: '',
     email: '',
   });
 
   const [usernameStatus, setUsernameStatus] = useState({ checking: false, available: null, message: '' });
+  const [isCustomCountryCode, setIsCustomCountryCode] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
@@ -62,7 +66,7 @@ const Onboarding = () => {
         const data = await authService.getColleges();
         setCollegesList(data);
       } catch (err) {
-        console.error("Failed to load college suggestions:", err);
+        // Silent fail for suggestions
       }
     }
     fetchColleges();
@@ -138,6 +142,10 @@ const Onboarding = () => {
     else if (!/^[a-zA-Z0-9_.-]+$/.test(form.username.trim())) newErrors.username = 'Letters, numbers, _ . - only';
     if (!form.college.trim()) newErrors.college = 'College is required';
     if (!form.year) newErrors.year = 'Year is required';
+    if (!form.rollNumber.trim()) newErrors.rollNumber = 'Roll number is required';
+    if (!form.programme) newErrors.programme = 'Programme is required';
+    if (!form.countryCode.trim()) newErrors.countryCode = 'Country code is required';
+    else if (!/^\+[0-9]{1,4}$/.test(form.countryCode.trim())) newErrors.countryCode = 'Must be + followed by 1-4 digits';
     if (!form.mobileNumber.trim()) newErrors.mobileNumber = 'Mobile number is required';
     else if (!/^[0-9]{10}$/.test(form.mobileNumber.trim())) newErrors.mobileNumber = 'Enter a valid 10-digit number';
     if (!form.email.trim()) newErrors.email = 'Email is required';
@@ -167,6 +175,9 @@ const Onboarding = () => {
         username: form.username.trim(),
         college: form.college.trim(),
         year: form.year,
+        rollNumber: form.rollNumber.trim(),
+        programme: form.programme,
+        countryCode: form.countryCode.trim(),
         mobileNumber: form.mobileNumber.trim(),
         email: form.email.trim(),
       };
@@ -303,20 +314,131 @@ const Onboarding = () => {
             </div>
 
             <div className="onboarding-field">
-              <label htmlFor="onb-mobile">Mobile Number</label>
+              <label htmlFor="onb-rollNumber">Roll Number</label>
               <input
-                id="onb-mobile"
-                type="tel"
-                name="mobileNumber"
-                value={form.mobileNumber}
+                id="onb-rollNumber"
+                type="text"
+                name="rollNumber"
+                value={form.rollNumber}
                 onChange={handleChange}
-                placeholder="10-digit number"
-                className={errors.mobileNumber ? 'is-error' : ''}
-                autoComplete="tel"
-                maxLength={10}
+                placeholder="e.g. 210101001"
+                className={errors.rollNumber ? 'is-error' : ''}
               />
-              <span className={`onboarding-field-hint ${errors.mobileNumber ? 'is-error' : ''}`}>
-                {errors.mobileNumber || ''}
+              <span className={`onboarding-field-hint ${errors.rollNumber ? 'is-error' : ''}`}>
+                {errors.rollNumber || ''}
+              </span>
+            </div>
+          </div>
+
+          <div className="onboarding-row">
+            <div className="onboarding-field">
+              <label htmlFor="onb-programme">Programme</label>
+              <select
+                id="onb-programme"
+                name="programme"
+                value={form.programme}
+                onChange={handleChange}
+                className={errors.programme ? 'is-error' : ''}
+              >
+                <option value="">Select programme</option>
+                <option value="Btech">B.Tech</option>
+                <option value="Mtech">M.Tech</option>
+                <option value="B.Des">B.Des</option>
+                <option value="Others">Others</option>
+              </select>
+              <span className={`onboarding-field-hint ${errors.programme ? 'is-error' : ''}`}>
+                {errors.programme || ''}
+              </span>
+            </div>
+
+            <div className="onboarding-field">
+              <label htmlFor="onb-mobile">Mobile Number</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                {isCustomCountryCode ? (
+                  <div style={{ display: 'flex', gap: '4px', width: '130px', flexShrink: 0 }}>
+                    <input
+                      type="text"
+                      name="countryCode"
+                      value={form.countryCode}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (val === '' || /^\+?[0-9]*$/.test(val)) {
+                          handleChange(e);
+                        }
+                      }}
+                      placeholder="+XX"
+                      maxLength={5}
+                      style={{ width: '80px', flexShrink: 0 }}
+                      className={errors.countryCode ? 'is-error' : ''}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsCustomCountryCode(false);
+                        setForm(prev => ({ ...prev, countryCode: '+91' }));
+                        setErrors(prev => ({ ...prev, countryCode: '' }));
+                      }}
+                      style={{
+                        flexGrow: 1,
+                        padding: '0 4px',
+                        fontSize: '0.9rem',
+                        background: '#cbd5e1',
+                        border: '2px solid #94a3b8',
+                        borderRadius: '4px',
+                        color: '#1e293b',
+                        cursor: 'pointer',
+                        fontFamily: 'VT323, monospace',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      List
+                    </button>
+                  </div>
+                ) : (
+                  <select
+                    id="onb-countryCode"
+                    name="countryCode"
+                    value={form.countryCode}
+                    onChange={(e) => {
+                      if (e.target.value === 'custom') {
+                        setIsCustomCountryCode(true);
+                        setForm(prev => ({ ...prev, countryCode: '' }));
+                      } else {
+                        handleChange(e);
+                      }
+                    }}
+                    style={{ width: '130px', flexShrink: 0 }}
+                    className={errors.countryCode ? 'is-error' : ''}
+                  >
+                    <option value="+91">+91 (IN)</option>
+                    <option value="+1">+1 (US)</option>
+                    <option value="+44">+44 (UK)</option>
+                    <option value="+86">+86 (CN)</option>
+                    <option value="+49">+49 (DE)</option>
+                    <option value="+33">+33 (FR)</option>
+                    <option value="+81">+81 (JP)</option>
+                    <option value="+65">+65 (SG)</option>
+                    <option value="+61">+61 (AU)</option>
+                    <option value="custom">Other...</option>
+                  </select>
+                )}
+                <input
+                  id="onb-mobile"
+                  type="tel"
+                  name="mobileNumber"
+                  value={form.mobileNumber}
+                  onChange={handleChange}
+                  placeholder="10-digit number"
+                  className={errors.mobileNumber ? 'is-error' : ''}
+                  autoComplete="tel"
+                  maxLength={10}
+                  style={{ flexGrow: 1 }}
+                />
+              </div>
+              <span className={`onboarding-field-hint ${errors.mobileNumber || errors.countryCode ? 'is-error' : ''}`}>
+                {errors.mobileNumber || errors.countryCode || ''}
               </span>
             </div>
           </div>

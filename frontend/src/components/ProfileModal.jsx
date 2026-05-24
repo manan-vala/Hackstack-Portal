@@ -7,7 +7,9 @@ import {
   GraduationCap,
   Calendar,
   X,
-  Sparkles
+  Sparkles,
+  Hash,
+  BookOpen
 } from "lucide-react";
 
 export function ProfileModal({ isOpen, onClose, user }) {
@@ -91,7 +93,7 @@ export function ProfileModal({ isOpen, onClose, user }) {
                     Mobile Number
                   </span>
                   <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.mobileNumber || "—"}
+                    {user?.countryCode && user?.mobileNumber ? `${user.countryCode} ${user.mobileNumber}` : user?.mobileNumber || "—"}
                   </span>
                 </div>
               </div>
@@ -116,6 +118,32 @@ export function ProfileModal({ isOpen, onClose, user }) {
                   </span>
                   <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
                     {user?.year || "—"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
+                <Hash className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Roll Number
+                  </span>
+                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                    {user?.rollNumber || "—"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
+                <BookOpen className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
+                <div className="min-w-0">
+                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                    Programme
+                  </span>
+                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
+                    {user?.programme === "Btech" ? "B.Tech" :
+                     user?.programme === "Mtech" ? "M.Tech" :
+                     user?.programme || "—"}
                   </span>
                 </div>
               </div>

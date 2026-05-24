@@ -142,9 +142,9 @@ exports.getMe = async (req, res) => {
 
 exports.completeProfile = async (req, res) => {
   try {
-    const { name, username, college, year, mobileNumber, email } = req.body;
+    const { name, username, college, year, mobileNumber, email, rollNumber, programme, countryCode } = req.body;
 
-    if (!name || !username || !college || !year || !mobileNumber) {
+    if (!name || !username || !college || !year || !mobileNumber || !rollNumber || !programme || !countryCode) {
       return res.status(400).json({ message: 'All fields are required.' });
     }
 
@@ -164,6 +164,9 @@ exports.completeProfile = async (req, res) => {
         username: username.toLowerCase(),
         college,
         year,
+        rollNumber,
+        programme,
+        countryCode,
         mobileNumber,
         email: email || req.user.email,
         profileCompleted: true,

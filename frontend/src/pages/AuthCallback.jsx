@@ -29,7 +29,7 @@ const AuthCallback = () => {
               return;
             }
           } catch (adminErr) {
-            console.error("Admin check failed in callback:", adminErr);
+            // Ignore error
           }
 
           // Not an admin or check failed: redirect to user dashboard
@@ -37,7 +37,6 @@ const AuthCallback = () => {
           navigate('/dashboard');
         }
       } catch (err) {
-        console.error('Authentication failed:', err);
         navigate('/login.html?error=auth_failed');
       }
     };

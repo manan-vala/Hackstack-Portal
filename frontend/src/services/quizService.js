@@ -24,14 +24,6 @@ export const quizService = {
       });
       return response.data;
     } catch (error) {
-      // Force detailed logging
-      const serverMessage = error.response?.data?.message;
-      console.error("SUBMIT_FAILURE_DETAILS:", {
-        status: error.response?.status,
-        serverMessage: serverMessage,
-        raw: error.response?.data
-      });
-      
       throw new Error(getDetailedError(error, "Failed to submit quiz."));
     }
   },

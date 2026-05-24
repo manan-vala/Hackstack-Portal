@@ -383,34 +383,38 @@ function ModuleDetail() {
             </button>
           ))}
 
-          <a href="#module-final-task" className="module-assessment-card">
-            <div className="module-assessment-icon">
-              <ClipboardCheck size={18} />
-            </div>
-            <strong>Final Assessment</strong>
-            <span>
+          {module.showFinalAssessment ? (
+            <a href="#module-final-task" className="module-assessment-card">
+              <div className="module-assessment-icon">
+                <ClipboardCheck size={18} />
+              </div>
+              <strong>Final Assessment</strong>
+              <span>
+                {module.assessment?.type === "project"
+                  ? "Project brief"
+                  : "Final quiz or capstone"}
+              </span>
+            </a>
+          ) : null}
+        </div>
+      </section>
+
+      {module.showFinalAssessment ? (
+        <section id="module-final-task" className="module-final-task">
+          <div className="module-final-task-header">
+            <span className="module-badge">Final task</span>
+            <h3>
               {module.assessment?.type === "project"
-                ? "Project brief"
-                : "Final quiz or capstone"}
-            </span>
-          </a>
-        </div>
-      </section>
+                ? "Ship the capstone"
+                : "Wrap up the module"}
+            </h3>
+          </div>
 
-      <section id="module-final-task" className="module-final-task">
-        <div className="module-final-task-header">
-          <span className="module-badge">Final task</span>
-          <h3>
-            {module.assessment?.type === "project"
-              ? "Ship the capstone"
-              : "Wrap up the module"}
-          </h3>
-        </div>
-
-        <div className="module-final-task-body">
-          <Markdown source={finalTaskContent} />
-        </div>
-      </section>
+          <div className="module-final-task-body">
+            <Markdown source={finalTaskContent} />
+          </div>
+        </section>
+      ) : null}
 
       {freshOpenDay ? (
         <DayModal

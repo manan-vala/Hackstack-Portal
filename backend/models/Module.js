@@ -22,6 +22,7 @@ const moduleSchema = new mongoose.Schema(
 		week: { type: Number },
 		learningOutcomes: [{ type: String }],
 		finalTask: { type: String, default: '' },
+		showFinalAssessment: { type: Boolean, default: false },
 		tempInfo: { type: String, default: '' }
 	},
 	{ timestamps: true }

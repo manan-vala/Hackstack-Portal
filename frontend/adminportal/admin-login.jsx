@@ -52,7 +52,6 @@ export default function AdminLogin() {
           setChecking(false);
         }
       } catch (err) {
-        console.error("Auth check failed:", err);
         setChecking(false);
       }
     }
@@ -67,7 +66,6 @@ export default function AdminLogin() {
       localStorage.setItem("admin_login_redirect", "true");
       window.location.assign("/api/auth/google");
     } catch (err) {
-      console.error("Logout failed:", err);
       setChecking(false);
     }
   };

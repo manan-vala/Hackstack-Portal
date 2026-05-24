@@ -106,8 +106,7 @@ function ModuleCatalog() {
 
       {modules.length === 0 ? (
         <div className="modules-panel modules-empty-state">
-          No modules have been published yet. Ask an admin to add modules through
-          the backend.
+          No modules have been published yet.
         </div>
       ) : (
         <>

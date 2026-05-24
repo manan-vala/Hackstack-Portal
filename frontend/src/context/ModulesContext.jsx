@@ -121,7 +121,6 @@ export function ModulesProvider({ children }) {
       await loadData();
       return result;
     } catch (error) {
-      console.error("submitQuiz context error:", error);
       throw error;
     }
   };

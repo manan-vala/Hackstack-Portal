@@ -167,18 +167,9 @@ export default function AdminDashboard() {
         const quizzesCaller = USE_MOCK ? mockFetchQuizzesPublic : fetchQuizzesPublic;
 
         const [statsData, modulesData, quizzesData] = await Promise.all([
-          statsCaller().catch((err) => {
-            console.error("Error loading users stats:", err);
-            return { totalUsers: "—" };
-          }),
-          modulesCaller().catch((err) => {
-            console.error("Error loading modules:", err);
-            return [];
-          }),
-          quizzesCaller().catch((err) => {
-            console.error("Error loading quizzes:", err);
-            return [];
-          }),
+          statsCaller().catch(() => ({ totalUsers: "—" })),
+          modulesCaller().catch(() => []),
+          quizzesCaller().catch(() => []),
         ]);
 
         if (active) {
@@ -189,7 +180,7 @@ export default function AdminDashboard() {
           });
         }
       } catch (err) {
-        console.error("Error loading dashboard stats:", err);
+        // Silent error
       }
     }
 
@@ -207,7 +198,7 @@ export default function AdminDashboard() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
     } catch (err) {
-      console.error("Logout failed:", err);
+      // Silent error
     }
     logout();
     navigate("/admin/login", { replace: true });

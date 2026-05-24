@@ -203,67 +203,71 @@ function ModuleDetail() {
           {
     /* Final assessment card */
   }
-          <motion.div
-    initial={{ opacity: 0, y: 20 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: m.chapters.length * 0.06 }}
-    whileHover={allDaysComplete ? { y: -3 } : {}}
-    className="group"
-  >
-            <div
-    onClick={() => allDaysComplete && setAssessmentOpen(true)}
-    className={`relative overflow-hidden rounded-2xl border h-full flex flex-col transition-all duration-200 shadow-sm
-                ${finalDone ? isQuizAssessment ? "border-amber-200 bg-amber-50 cursor-pointer hover:shadow-md" : "border-violet-200 bg-violet-50 cursor-pointer hover:shadow-md" : allDaysComplete ? "border-slate-200 bg-white cursor-pointer hover:border-amber-300 hover:shadow-md" : "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"}`}
-  >
-              <div className={`h-1.5 w-full ${isQuizAssessment ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-violet-500 to-purple-600"} ${finalDone ? "opacity-100" : "opacity-40"}`} />
-              <div className="p-5 flex flex-col items-center justify-center gap-3 text-center flex-1 min-h-[180px]">
-                <div className={`size-12 rounded-2xl grid place-items-center ${finalDone ? isQuizAssessment ? "bg-amber-100" : "bg-violet-100" : "bg-slate-100"}`}>
-                  {isQuizAssessment ? <Trophy className={`size-6 ${finalDone ? "text-amber-500" : allDaysComplete ? "text-slate-500" : "text-slate-300"}`} /> : <FolderGit2 className={`size-6 ${finalDone ? "text-violet-500" : allDaysComplete ? "text-slate-500" : "text-slate-300"}`} />}
-                </div>
-                <div>
-                  <div className={`text-sm font-medium ${finalDone ? isQuizAssessment ? "text-amber-700" : "text-violet-700" : allDaysComplete ? "text-slate-800" : "text-slate-400"}`}>
-                    {isQuizAssessment ? "Final Assessment" : "Project Submission"}
+          {m.showFinalAssessment ? (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: m.chapters.length * 0.06 }}
+              whileHover={allDaysComplete ? { y: -3 } : {}}
+              className="group"
+            >
+              <div
+                onClick={() => allDaysComplete && setAssessmentOpen(true)}
+                className={`relative overflow-hidden rounded-2xl border h-full flex flex-col transition-all duration-200 shadow-sm
+                  ${finalDone ? isQuizAssessment ? "border-amber-200 bg-amber-50 cursor-pointer hover:shadow-md" : "border-violet-200 bg-violet-50 cursor-pointer hover:shadow-md" : allDaysComplete ? "border-slate-200 bg-white cursor-pointer hover:border-amber-300 hover:shadow-md" : "border-slate-100 bg-slate-50 opacity-50 cursor-not-allowed"}`}
+              >
+                <div className={`h-1.5 w-full ${isQuizAssessment ? "bg-gradient-to-r from-amber-400 to-orange-500" : "bg-gradient-to-r from-violet-500 to-purple-600"} ${finalDone ? "opacity-100" : "opacity-40"}`} />
+                <div className="p-5 flex flex-col items-center justify-center gap-3 text-center flex-1 min-h-[180px]">
+                  <div className={`size-12 rounded-2xl grid place-items-center ${finalDone ? isQuizAssessment ? "bg-amber-100" : "bg-violet-100" : "bg-slate-100"}`}>
+                    {isQuizAssessment ? <Trophy className={`size-6 ${finalDone ? "text-amber-500" : allDaysComplete ? "text-slate-500" : "text-slate-300"}`} /> : <FolderGit2 className={`size-6 ${finalDone ? "text-violet-500" : allDaysComplete ? "text-slate-500" : "text-slate-300"}`} />}
                   </div>
-                  <div className="text-xs text-slate-400 mt-0.5">
-                    {finalDone ? finalAttempt.type === "quiz" ? `${finalAttempt.score} / ${finalAttempt.totalMarks} pts` : "Submitted" : allDaysComplete ? isQuizAssessment ? `${m.assessment.questions.length} questions` : "Ready to submit" : `Complete all ${m.chapters.length} days first`}
+                  <div>
+                    <div className={`text-sm font-medium ${finalDone ? isQuizAssessment ? "text-amber-700" : "text-violet-700" : allDaysComplete ? "text-slate-800" : "text-slate-400"}`}>
+                      {isQuizAssessment ? "Final Assessment" : "Project Submission"}
+                    </div>
+                    <div className="text-xs text-slate-400 mt-0.5">
+                      {finalDone ? finalAttempt.type === "quiz" ? `${finalAttempt.score} / ${finalAttempt.totalMarks} pts` : "Submitted" : allDaysComplete ? isQuizAssessment ? `${m.assessment.questions.length} questions` : "Ready to submit" : `Complete all ${m.chapters.length} days first`}
+                    </div>
                   </div>
-                </div>
-                {finalDone && finalAttempt.type === "project" && <a
-    href={finalAttempt.repoUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-    onClick={(e) => e.stopPropagation()}
-    className="inline-flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 underline underline-offset-2"
-  >
+                  {finalDone && finalAttempt.type === "project" && <a
+                    href={finalAttempt.repoUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 text-xs text-violet-600 hover:text-violet-800 underline underline-offset-2"
+                  >
                     <ExternalLink className="size-3" /> View repo
                   </a>}
+                </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          ) : null}
         </div>
 
         {
     /* Final Task section */
   }
-        <motion.div
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: (m.chapters.length + 1) * 0.06 }}
-    className="mt-8"
-  >
-          <div className="flex items-center gap-3 mb-4">
-            <div className={`size-8 rounded-xl bg-gradient-to-br ${m.color} grid place-items-center shrink-0`}>
-              <BookOpen className="size-4 text-white" />
+        {m.showFinalAssessment ? (
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: (m.chapters.length + 1) * 0.06 }}
+            className="mt-8"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <div className={`size-8 rounded-xl bg-gradient-to-br ${m.color} grid place-items-center shrink-0`}>
+                <BookOpen className="size-4 text-white" />
+              </div>
+              <h2 className="text-slate-800 tracking-tight">Final Task</h2>
             </div>
-            <h2 className="text-slate-800 tracking-tight">Final Task</h2>
-          </div>
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-            <div className={`h-1.5 w-full bg-gradient-to-r ${m.color}`} />
-            <div className="p-6 md:p-8">
-              <Markdown source={m.finalTask ?? ""} />
+            <div className="rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+              <div className={`h-1.5 w-full bg-gradient-to-r ${m.color}`} />
+              <div className="p-6 md:p-8">
+                <Markdown source={m.finalTask ?? ""} />
+              </div>
             </div>
-          </div>
-        </motion.div>
+          </motion.div>
+        ) : null}
 
         {
     /* Day modal */

@@ -14,7 +14,7 @@ export const AuthProvider = ({ children }) => {
         const userData = await authService.getCurrentUser();
         setUser(userData);
       } catch (err) {
-        console.error("Auth initialization failed:", err);
+        // Silent fail if unauthorized on load
       } finally {
         setLoading(false);
       }

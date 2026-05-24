@@ -60,7 +60,7 @@ export function getModuleTheme(slug) {
 
 export function flattenModuleDays(module) {
   const days = [];
-  let dayNumber = 1;
+  let dayNumber = 0;
 
   for (const chapter of module.chapters || []) {
     for (const day of chapter.days || []) {
@@ -101,6 +101,7 @@ export function normalizeModule(module, index = 0) {
     skills: module.skills?.length ? module.skills : blueprint?.skills || [],
     tools: module.tools?.length ? module.tools : blueprint?.tools || [],
     finalTask: module.finalTask || blueprint?.finalTask || "",
+    showFinalAssessment: module.showFinalAssessment !== undefined ? module.showFinalAssessment : (blueprint ? true : false),
     id,
     days,
     theme: getModuleTheme(module.slug),

@@ -59,7 +59,7 @@
   border-radius: 6px;
   padding: 32px 36px 28px;
   width: 100%;
-  max-width: 520px;
+  max-width: 680px;
   box-shadow: 6px 6px 0 #b0bdd4, 0 0 40px rgba(0, 194, 255, 0.08);
   animation: onb-fadeUp 0.5s ease both;
   animation-delay: 0.15s;
@@ -67,7 +67,7 @@
 
 .onboarding-card-title {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   color: #1a2340;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -76,7 +76,7 @@
 
 .onboarding-card-subtitle {
   font-family: 'VT323', monospace;
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   color: #6b7a99;
   margin-bottom: 24px;
 }
@@ -95,7 +95,7 @@
 
 .onboarding-field label {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.45rem;
+  font-size: 0.55rem;
   color: #1a2340;
   text-transform: uppercase;
   letter-spacing: 1.5px;
@@ -104,7 +104,7 @@
 .onboarding-field input,
 .onboarding-field select {
   font-family: 'VT323', monospace;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   padding: 10px 14px;
   border: 2px solid #c8d4e8;
   border-radius: 4px;
@@ -131,7 +131,7 @@
 
 .onboarding-field-hint {
   font-family: 'VT323', monospace;
-  font-size: 0.95rem;
+  font-size: 1.1rem;
   color: #6b7a99;
   min-height: 1.1em;
 }
@@ -161,7 +161,7 @@
   border-radius: 4px;
   padding: 14px 20px;
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   color: #fff;
   cursor: pointer;
   box-shadow: 4px 4px 0 #0d1525, 0 0 16px rgba(0, 194, 255, 0.1);

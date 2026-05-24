@@ -30,7 +30,6 @@ export default function AdminNotifications() {
       const data = await getAdminNotifications();
       setNotifications(data);
     } catch (err) {
-      console.error("Failed to load notifications:", err);
       setError(err.message || "Failed to load notifications.");
     } finally {
       setLoading(false);

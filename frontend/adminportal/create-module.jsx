@@ -11,7 +11,7 @@ const makeQuestion = () => ({
 });
 
 const makeDay = (index) => ({
-  title: `Day ${index + 1}`,
+  title: `Day ${index}`,
   videoUrls: [""],
   markdownContent: "",
   markdownFileName: "",
@@ -109,6 +109,7 @@ export default function CreateModule() {
   const [tempInfo, setTempInfo] = useState("");
   const [finalAssessment, setFinalAssessment] = useState("");
   const [finalAssessmentFileName, setFinalAssessmentFileName] = useState("");
+  const [showFinalAssessment, setShowFinalAssessment] = useState(false);
   const [days, setDays] = useState([makeDay(0)]);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -118,7 +119,7 @@ export default function CreateModule() {
   const slugPreview = useMemo(() => slugify(moduleName), [moduleName]);
 
   const updateDayCount = (value) => {
-    const nextCount = Math.max(1, Number(value) || 1);
+    const nextCount = Math.max(0, Number(value) || 0);
     setDays((current) =>
       Array.from({ length: nextCount }, (_, index) => current[index] || makeDay(index)),
     );
@@ -244,9 +245,6 @@ export default function CreateModule() {
       throw new Error("Module name must contain letters or numbers.");
     }
 
-    if (outcomes.length === 0) {
-      throw new Error("Add at least one short learning point.");
-    }
 
     const preparedDays = days.map((day, dayIndex) => {
       const videoUrl = day.videoUrls.map((url) => url.trim()).filter(Boolean);
@@ -255,7 +253,7 @@ export default function CreateModule() {
 
       if (videoUrl.length === 0 && !hasMarkdown) {
         throw new Error(
-          `Add at least one video link or one markdown file for Day ${dayIndex + 1}.`,
+          `Add at least one video link or one markdown file for Day ${dayIndex}.`,
         );
       }
 
@@ -266,19 +264,19 @@ export default function CreateModule() {
 
         if (!text) {
           throw new Error(
-            `Question ${questionIndex + 1} is missing for Day ${dayIndex + 1}.`,
+            `Question ${questionIndex + 1} is missing for Day ${dayIndex}.`,
           );
         }
 
         if (options.some((option) => !option)) {
           throw new Error(
-            `All 4 options are required for Day ${dayIndex + 1}, Question ${questionIndex + 1}.`,
+            `All 4 options are required for Day ${dayIndex}, Question ${questionIndex + 1}.`,
           );
         }
 
         if (!Number.isInteger(correctIndex) || correctIndex < 0 || correctIndex > 3) {
           throw new Error(
-            `Choose a correct answer for Day ${dayIndex + 1}, Question ${questionIndex + 1}.`,
+            `Choose a correct answer for Day ${dayIndex}, Question ${questionIndex + 1}.`,
           );
         }
 
@@ -291,7 +289,7 @@ export default function CreateModule() {
       });
 
       return {
-        title: `Day ${dayIndex + 1}`,
+        title: `Day ${dayIndex}`,
         contentMarkdown: day.markdownContent,
         videoUrl,
         questions,
@@ -302,11 +300,12 @@ export default function CreateModule() {
       modulePayload: {
         title: trimmedName,
         slug,
-        description: outcomes.slice(0, 2).join(" "),
+        description: outcomes.slice(0, 2).join(" ") || trimmedName,
         week: Number(moduleNumber),
         learningOutcomes: outcomes,
         difficulty: `${preparedDays.length}-day guided stack`,
         finalTask: finalAssessment.trim(),
+        showFinalAssessment,
         tempInfo: tempInfo.trim(),
         isPublished: true,
         chapters: [
@@ -362,6 +361,7 @@ export default function CreateModule() {
       setTempInfo("");
       setFinalAssessment("");
       setFinalAssessmentFileName("");
+      setShowFinalAssessment(false);
       setDays([makeDay(0)]);
     } catch (err) {
       setError(err.message || "Failed to create module.");
@@ -443,7 +443,7 @@ export default function CreateModule() {
                 </span>
                 <input
                   type="number"
-                  min="1"
+                  min="0"
                   max="60"
                   value={dayCount}
                   onChange={(event) => updateDayCount(event.target.value)}
@@ -492,7 +492,7 @@ Connect pages to real APIs`}
               <div className="mb-5 flex items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
-                    Day {dayIndex + 1}
+                    Day {dayIndex}
                   </p>
                   <h2 className="text-lg font-bold">Videos, reading, and quiz</h2>
                 </div>
@@ -652,14 +652,25 @@ Connect pages to real APIs`}
           ))}
 
           <section className="rounded-xl border border-gray-800 bg-gray-900 p-5">
-            <div className="mb-4">
-              <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
-                Optional
-              </p>
-              <h2 className="mt-1 text-lg font-bold">Final assessment</h2>
-              <p className="mt-1 text-sm text-gray-400">
-                Add final instructions, a capstone brief, or submission requirements.
-              </p>
+            <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-indigo-300">
+                  Optional
+                </p>
+                <h2 className="mt-1 text-lg font-bold">Final assessment</h2>
+                <p className="mt-1 text-sm text-gray-400">
+                  Add final instructions, a capstone brief, or submission requirements.
+                </p>
+              </div>
+              <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-700 bg-gray-950 px-4 py-2 text-sm font-semibold text-gray-200 transition hover:border-indigo-500 hover:bg-gray-900 hover:text-white">
+                <input
+                  type="checkbox"
+                  checked={showFinalAssessment}
+                  onChange={(e) => setShowFinalAssessment(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-700 bg-gray-900 text-indigo-600 focus:ring-indigo-500 focus:ring-offset-gray-900"
+                />
+                Show final assessment to users
+              </label>
             </div>
             <MarkdownEditor
               label="Final assessment markdown"
