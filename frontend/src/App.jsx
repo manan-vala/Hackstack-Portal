@@ -60,7 +60,7 @@ const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router>
+        <Router basename="/hackstack">
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth-callback" element={<AuthCallback />} />
