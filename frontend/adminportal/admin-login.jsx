@@ -35,7 +35,7 @@ export default function AdminLogin() {
         return;
       }
       try {
-        const res = await fetch("/api/auth/admin-check");
+        const res = await fetch(`/hackstack/api/auth/admin-check`);
         const data = await res.json();
 
         if (data.authorized) {
@@ -43,11 +43,11 @@ export default function AdminLogin() {
           navigate("/admin/dashboard", { replace: true });
         } else if (data.loginRequired) {
           localStorage.setItem("admin_login_redirect", "true");
-          window.location.assign("/api/auth/google");
+          window.location.assign("/hackstack/api/auth/google");
         } else if (data.forbidden) {
           localStorage.removeItem("jwt");
           localStorage.removeItem("adminUser");
-          window.location.assign("/login.html");
+          window.location.assign("/hackstack/login.html");
         } else {
           setChecking(false);
         }
@@ -62,9 +62,9 @@ export default function AdminLogin() {
   const handleSwitchAccount = async () => {
     setChecking(true);
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch(`/hackstack/api/auth/logout`, { method: "POST" });
       localStorage.setItem("admin_login_redirect", "true");
-      window.location.assign("/api/auth/google");
+      window.location.assign("/hackstack/api/auth/google");
     } catch (err) {
       setChecking(false);
     }
@@ -143,7 +143,7 @@ export default function AdminLogin() {
               Switch Google Account
             </button>
             <button
-              onClick={() => window.location.assign("/")}
+              onClick={() => window.location.assign("/hackstack/")}
               className="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 font-semibold text-sm rounded-lg py-2.5 transition-all"
             >
               Return to User Portal

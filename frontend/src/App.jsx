@@ -23,7 +23,7 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      window.location.assign(`${window.location.origin}/hackstack/login.html`);
+      window.location.assign(`/hackstack/login.html`);
     }
   }, [loading, user]);
 
