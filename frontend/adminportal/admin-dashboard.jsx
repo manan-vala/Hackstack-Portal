@@ -16,7 +16,7 @@ import {
   mockFetchQuizzesPublic,
 } from "./admin-api";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false;
 
 const ACTIONS = [
   {
@@ -177,7 +177,12 @@ export default function AdminDashboard() {
     };
   }, []);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/auth/logout", { method: "POST" });
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
     logout();
     navigate("/admin/login", { replace: true });
   };

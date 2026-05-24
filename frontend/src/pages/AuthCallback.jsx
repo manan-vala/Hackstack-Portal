@@ -16,13 +16,25 @@ const AuthCallback = () => {
         if (!userData.profileCompleted) {
           navigate('/onboarding');
         } else {
-          const isAdminRedirect = localStorage.getItem("admin_login_redirect") === "true";
-          if (isAdminRedirect) {
-            localStorage.removeItem("admin_login_redirect");
-            window.location.assign("/admin/dashboard");
-          } else {
-            navigate('/dashboard');
+          // Check if this user is a whitelisted admin
+          try {
+            const adminRes = await fetch("/api/auth/admin-check");
+            const adminData = await adminRes.json();
+            
+            if (adminData.authorized) {
+              localStorage.setItem("jwt", adminData.token);
+              localStorage.setItem("adminUser", JSON.stringify(adminData.user));
+              localStorage.removeItem("admin_login_redirect");
+              window.location.assign("/admin/dashboard");
+              return;
+            }
+          } catch (adminErr) {
+            console.error("Admin check failed in callback:", adminErr);
           }
+
+          // Not an admin or check failed: redirect to user dashboard
+          localStorage.removeItem("admin_login_redirect");
+          navigate('/dashboard');
         }
       } catch (err) {
         console.error('Authentication failed:', err);

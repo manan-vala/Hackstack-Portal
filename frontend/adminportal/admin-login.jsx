@@ -8,7 +8,7 @@ import { motion } from "framer-motion";
 import { useAdminAuth } from "./admin-auth-context";
 import { adminLogin, mockAdminLogin } from "./admin-api";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false;
 
 export default function AdminLogin() {
   const { login, admin } = useAdminAuth();

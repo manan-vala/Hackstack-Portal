@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { getAdminUsersProgress, mockGetAdminUsersProgress } from "./admin-api";
 import Avatar from "./avatar";
 
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true";
+const USE_MOCK = false;
 
 export default function AdminUsers() {
   const navigate = useNavigate();
