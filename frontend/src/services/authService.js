@@ -2,7 +2,7 @@
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const authService = {
-  getGitHubRedirectUrl: () => `${API_URL}/auth/github`,
+  getGoogleRedirectUrl: () => `${API_URL}/auth/google`,
 
   getCurrentUser: async () => {
     const response = await fetch(`${API_URL}/auth/me`, {
@@ -19,12 +19,41 @@ export const authService = {
     return response.json();
   },
 
+  completeProfile: async (profileData) => {
+    const response = await fetch(`${API_URL}/auth/complete-profile`, {
+      method: 'POST',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      body: JSON.stringify(profileData),
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(body.message || 'Failed to complete profile.');
+    }
+
+    return response.json();
+  },
+
+  checkUsername: async (username) => {
+    const response = await fetch(
+      `${API_URL}/auth/check-username?username=${encodeURIComponent(username)}`,
+      {
+        method: 'GET',
+        credentials: 'include',
+        headers: { Accept: 'application/json' },
+      }
+    );
+    return response.json();
+  },
+
   logout: async () => {
-    // Clears the HttpOnly token cookie on the server side.
     await fetch(`${API_URL}/auth/logout`, {
       method: 'POST',
       credentials: 'include',
-    }).catch(() => {}); // Best-effort — don't block the UI if it fails
+    }).catch(() => {});
   },
 };
-

@@ -8,14 +8,13 @@ const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 const stateStore = new Map();
 
-// OAuth callback must match the URL the browser hits (use Vite proxy in dev → port 5173).
 const getCallbackUrl = () => {
   const base = (
     process.env.OAUTH_CALLBACK_URL ||
     process.env.FRONTEND_URL ||
     'http://localhost:5173'
   ).replace(/\/$/, '');
-  return `${base}/api/auth/github/callback`;
+  return `${base}/api/auth/google/callback`;
 };
 
 const getFrontendUrl = () =>
@@ -29,90 +28,83 @@ setInterval(() => {
   }
 }, 300000);
 
-exports.redirectToGitHub = (req, res) => {
+exports.redirectToGoogle = (req, res) => {
   const state = crypto.randomBytes(16).toString('hex');
   stateStore.set(state, { timestamp: Date.now() });
 
   const params = new URLSearchParams({
-    client_id: process.env.GITHUB_CLIENT_ID,
+    client_id: process.env.GOOGLE_CLIENT_ID,
     redirect_uri: getCallbackUrl(),
-    scope: 'user:email',
+    response_type: 'code',
+    scope: 'openid email profile',
     state,
     prompt: 'select_account',
+    access_type: 'offline',
   });
 
-  res.redirect(`https://github.com/login/oauth/authorize?${params}`);
+  res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params}`);
 };
 
-exports.handleGitHubCallback = async (req, res) => {
-  const { code, state, error, error_description } = req.query;
+exports.handleGoogleCallback = async (req, res) => {
+  const { code, state, error } = req.query;
   const frontendUrl = getFrontendUrl();
 
   if (error) {
-    console.error('GitHub OAuth denied:', error, error_description || '');
-    return res.redirect(`${frontendUrl}/login?error=auth_denied`);
+    console.error('Google OAuth denied:', error);
+    return res.redirect(`${frontendUrl}/login.html?error=auth_denied`);
   }
 
   if (!code) {
-    return res.redirect(`${frontendUrl}/login?error=missing_code`);
+    return res.redirect(`${frontendUrl}/login.html?error=missing_code`);
   }
 
   if (!state || !stateStore.has(state)) {
-    return res.redirect(`${frontendUrl}/login?error=invalid_state`);
+    return res.redirect(`${frontendUrl}/login.html?error=invalid_state`);
   }
   stateStore.delete(state);
 
   try {
-    const callbackUrl = getCallbackUrl();
-
+    // Exchange code for tokens
     const tokenResponse = await axios.post(
-      'https://github.com/login/oauth/access_token',
+      'https://oauth2.googleapis.com/token',
       {
-        client_id: process.env.GITHUB_CLIENT_ID,
-        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
         code,
-        redirect_uri: callbackUrl,
+        redirect_uri: getCallbackUrl(),
+        grant_type: 'authorization_code',
       },
-      { headers: { Accept: 'application/json' } }
+      { headers: { 'Content-Type': 'application/json' } }
     );
 
-    const { access_token: accessToken, error: tokenError, error_description: tokenDesc } =
-      tokenResponse.data;
+    const { access_token: accessToken, id_token: idToken } = tokenResponse.data;
 
-    if (tokenError || !accessToken) {
-      console.error('GitHub token exchange failed:', tokenError, tokenDesc || '');
-      return res.redirect(`${frontendUrl}/login?error=auth_failed`);
+    if (!accessToken) {
+      console.error('Google token exchange failed: no access_token');
+      return res.redirect(`${frontendUrl}/login.html?error=auth_failed`);
     }
 
-    const userResponse = await axios.get('https://api.github.com/user', {
-      headers: { Authorization: `Bearer ${accessToken}` },
-    });
+    // Fetch user profile from Google
+    const userInfoResponse = await axios.get(
+      'https://www.googleapis.com/oauth2/v2/userinfo',
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
 
-    const githubProfile = userResponse.data;
-    let email = githubProfile.email;
+    const googleProfile = userInfoResponse.data;
 
-    if (!email) {
-      const emailsResponse = await axios.get('https://api.github.com/user/emails', {
-        headers: { Authorization: `Bearer ${accessToken}` },
-      });
-      const primary = emailsResponse.data.find((e) => e.primary && e.verified);
-      email = primary?.email || emailsResponse.data[0]?.email;
-    }
-
-    let user = await User.findOne({ githubId: githubProfile.id.toString() });
+    // Find or create user
+    let user = await User.findOne({ googleId: googleProfile.id.toString() });
     if (!user) {
       user = await User.create({
-        githubId: githubProfile.id.toString(),
-        username: githubProfile.login,
-        email: email || `${githubProfile.login}@users.noreply.github.com`,
-        avatarUrl: githubProfile.avatar_url,
-        githubAccessToken: accessToken,
+        googleId: googleProfile.id.toString(),
+        email: googleProfile.email,
+        avatarUrl: googleProfile.picture || '',
+        name: googleProfile.name || '',
+        profileCompleted: false,
       });
-    } else {
-      user.githubAccessToken = accessToken;
-      await user.save();
     }
 
+    // Sign JWT
     const token = jwt.sign(
       { id: user._id.toString() },
       process.env.JWT_SECRET,
@@ -129,21 +121,17 @@ exports.handleGitHubCallback = async (req, res) => {
       path: '/',
     });
 
-    const redirectUrl = new URL('/auth-callback', frontendUrl);
-    redirectUrl.searchParams.set('username', user.username);
-    res.redirect(redirectUrl.toString());
+    res.redirect(`${frontendUrl}/auth-callback`);
   } catch (err) {
-    console.error('GitHub Auth Error:', err.response?.data || err.message);
-    res.redirect(`${frontendUrl}/login?error=auth_failed`);
+    console.error('Google Auth Error:', err.response?.data || err.message);
+    res.redirect(`${frontendUrl}/login.html?error=auth_failed`);
   }
 };
 
 exports.getMe = async (req, res) => {
-  // Admin portal is fully decoupled from GitHub OAuth and has no User record.
-  // Regular GitHub users never carry isAdmin, so no check is needed here.
   const user = await User.findById(req.user._id)
     .populate('registeredModules', 'title slug difficulty')
-    .select('-githubId');
+    .select('-googleId');
 
   if (!user) {
     return res.status(404).json({ message: 'User not found.' });
@@ -152,48 +140,57 @@ exports.getMe = async (req, res) => {
   res.json(user);
 };
 
+exports.completeProfile = async (req, res) => {
+  try {
+    const { name, username, college, year, mobileNumber, email } = req.body;
+
+    if (!name || !username || !college || !year || !mobileNumber) {
+      return res.status(400).json({ message: 'All fields are required.' });
+    }
+
+    // Check username uniqueness
+    const existing = await User.findOne({
+      username: username.toLowerCase(),
+      _id: { $ne: req.user._id },
+    });
+    if (existing) {
+      return res.status(409).json({ message: 'Username is already taken.' });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      {
+        name,
+        username: username.toLowerCase(),
+        college,
+        year,
+        mobileNumber,
+        email: email || req.user.email,
+        profileCompleted: true,
+      },
+      { new: true, runValidators: true }
+    ).select('-googleId');
+
+    res.json(user);
+  } catch (error) {
+    console.error('Complete profile error:', error);
+    res.status(500).json({ message: 'Failed to update profile.', error: error.message });
+  }
+};
+
+exports.checkUsername = async (req, res) => {
+  const { username } = req.query;
+
+  if (!username || username.length < 3) {
+    return res.json({ available: false, message: 'Username must be at least 3 characters.' });
+  }
+
+  const existing = await User.findOne({ username: username.toLowerCase() });
+  res.json({ available: !existing });
+};
+
 exports.logout = async (req, res) => {
   const isProd = process.env.NODE_ENV === 'production';
-
-  try {
-    const bearerToken = req.headers.authorization?.startsWith("Bearer")
-      ? req.headers.authorization.split(" ")[1]
-      : null;
-    const token = bearerToken || req.cookies?.token;
-
-    if (token) {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.id || decoded._id;
-      if (userId) {
-        const user = await User.findById(userId);
-        if (user && user.githubAccessToken) {
-          const credentials = Buffer.from(
-            `${process.env.GITHUB_CLIENT_ID}:${process.env.GITHUB_CLIENT_SECRET}`
-          ).toString('base64');
-
-          try {
-            await axios.delete(
-              `https://api.github.com/applications/${process.env.GITHUB_CLIENT_ID}/grant`,
-              {
-                headers: {
-                  Authorization: `Basic ${credentials}`,
-                  Accept: 'application/vnd.github+json',
-                },
-                data: {
-                  access_token: user.githubAccessToken,
-                },
-              }
-            );
-            console.log(`Successfully revoked GitHub grant for user ${user.username}`);
-          } catch (err) {
-            console.error('Failed to revoke GitHub grant:', err.response?.data || err.message);
-          }
-        }
-      }
-    }
-  } catch (err) {
-    console.error('Error during GitHub token revocation on logout:', err.message);
-  }
 
   res.clearCookie('token', {
     httpOnly: true,
@@ -215,17 +212,12 @@ exports.adminLogin = (req, res) => {
     return res.status(401).json({ message: 'Invalid admin credentials.' });
   }
 
-  // Admin auth is entirely credential-based — no MongoDB User record is
-  // created or queried. The admin portal is fully decoupled from GitHub OAuth.
   const token = jwt.sign(
     { isAdmin: true, username, canDelete: true },
     process.env.JWT_SECRET,
     { expiresIn: '30d' },
   );
 
-  // Token is returned in the JSON body only (NOT set as a cookie).
-  // The admin portal stores it in localStorage and sends it as a Bearer header,
-  // keeping it completely isolated from the user frontend's HttpOnly cookie.
   return res.json({
     token,
     user: { username, isAdmin: true, canDelete: true },

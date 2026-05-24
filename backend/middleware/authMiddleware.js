@@ -22,7 +22,7 @@ const auth = async (req, res, next) => {
         .json({ message: "Not authorized, invalid token." });
     }
 
-    const user = await User.findById(userId).select("-githubId");
+    const user = await User.findById(userId).select("-googleId");
     if (!user) {
       return res
         .status(401)

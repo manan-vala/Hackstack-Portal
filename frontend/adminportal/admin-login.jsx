@@ -43,7 +43,7 @@ export default function AdminLogin() {
           navigate("/admin/dashboard", { replace: true });
         } else if (data.loginRequired) {
           localStorage.setItem("admin_login_redirect", "true");
-          window.location.assign("/api/auth/github");
+          window.location.assign("/api/auth/google");
         } else if (data.forbidden) {
           localStorage.removeItem("jwt");
           localStorage.removeItem("adminUser");
@@ -65,7 +65,7 @@ export default function AdminLogin() {
     try {
       await fetch("/api/auth/logout", { method: "POST" });
       localStorage.setItem("admin_login_redirect", "true");
-      window.location.assign("/api/auth/github");
+      window.location.assign("/api/auth/google");
     } catch (err) {
       console.error("Logout failed:", err);
       setChecking(false);
@@ -142,7 +142,7 @@ export default function AdminLogin() {
               onClick={handleSwitchAccount}
               className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm rounded-lg py-2.5 transition-colors shadow-lg shadow-indigo-900/30"
             >
-              Switch GitHub Account
+              Switch Google Account
             </button>
             <button
               onClick={() => window.location.assign("/")}

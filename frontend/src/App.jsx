@@ -4,6 +4,7 @@ import {
   Routes,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { ModulesProvider } from "./context/ModulesContext";
@@ -14,15 +15,23 @@ import Dashboard from "./pages/Dashboard";
 import ModuleCatalog from "./pages/ModuleCatalog";
 import ModuleDetail from "./pages/ModuleDetail";
 import Leaderboard from "./pages/Leaderboard";
+import Onboarding from "./pages/Onboarding";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!loading && !user) {
       window.location.assign("/login.html");
     }
   }, [loading, user]);
+
+  useEffect(() => {
+    if (!loading && user && !user.profileCompleted) {
+      navigate('/onboarding');
+    }
+  }, [loading, user, navigate]);
 
   if (loading) {
     return (
@@ -32,7 +41,7 @@ const ProtectedRoute = ({ children }) => {
     );
   }
 
-  if (!user) {
+  if (!user || !user.profileCompleted) {
     return null;
   }
 
@@ -55,6 +64,7 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/auth-callback" element={<AuthCallback />} />
+            <Route path="/onboarding" element={<Onboarding />} />
 
             <Route
               path="/dashboard"

@@ -8,6 +8,4 @@ router.get("/:id", usersCtrl.getUser);
 router.post("/", usersCtrl.createUser);
 router.patch("/:id", usersCtrl.updateUser);
 router.delete("/:id", usersCtrl.deleteUser);
-router.post("/auth/github", usersCtrl.githubLogin);
-
 module.exports = router;

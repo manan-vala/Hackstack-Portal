@@ -1,11 +1,11 @@
 const express = require('express');
 const router = express.Router();
-const authCtrl = require('../controllers/authController'); 
+const authCtrl = require('../controllers/authController');
 const auth = require('../middleware/authMiddleware');
 
 router.post('/admin/login', authCtrl.adminLogin);
-router.get('/github', authCtrl.redirectToGitHub);
-router.get('/github/callback', authCtrl.handleGitHubCallback);
+router.get('/google', authCtrl.redirectToGoogle);
+router.get('/google/callback', authCtrl.handleGoogleCallback);
 router.get('/me', (req, res, next) => {
   if (process.env.NODE_ENV !== 'production') {
     console.log(
@@ -15,7 +15,10 @@ router.get('/me', (req, res, next) => {
   next();
 }, auth, authCtrl.getMe);
 
-// Clears the HttpOnly session cookie — works even without a valid token
+router.post('/complete-profile', auth, authCtrl.completeProfile);
+router.get('/check-username', authCtrl.checkUsername);
+
+// Clears the HttpOnly session cookie
 router.post('/logout', authCtrl.logout);
 router.get('/logout', authCtrl.logout);
 
@@ -50,46 +53,45 @@ router.get('/admin-check', async (req, res) => {
       return res.json({ authorized: false, loginRequired: true });
     }
 
-    // Check if the user's username is whitelisted in the database
+    // Check if the user's email is whitelisted in the database
     const AdminWhitelist = require('../models/AdminWhitelist');
     const isWhitelisted = await AdminWhitelist.findOne({
-      githubUsername: user.username.toLowerCase()
+      email: user.email.toLowerCase()
     });
 
-    const allowedUsernames = (process.env.ALLOWED_ADMIN_GITHUB_USERNAMES || "")
+    const allowedEmails = (process.env.ALLOWED_ADMIN_GOOGLE_EMAILS || "")
       .toLowerCase()
       .split(",")
       .map(s => s.trim())
       .filter(Boolean);
 
-    const allowedIds = (process.env.ALLOWED_ADMIN_GITHUB_IDS || "")
+    const allowedIds = (process.env.ALLOWED_ADMIN_GOOGLE_IDS || "")
       .split(",")
       .map(s => s.trim())
       .filter(Boolean);
 
-    const isUsernameAllowed = user.username && allowedUsernames.includes(user.username.toLowerCase());
-    const isIdAllowed = user.githubId && allowedIds.includes(user.githubId.toString());
+    const isEmailAllowed = user.email && allowedEmails.includes(user.email.toLowerCase());
+    const isIdAllowed = user.googleId && allowedIds.includes(user.googleId.toString());
 
-    if (isWhitelisted || isUsernameAllowed || isIdAllowed) {
+    if (isWhitelisted || isEmailAllowed || isIdAllowed) {
       const canDelete = isWhitelisted ? !!isWhitelisted.canDelete : false;
-      // Generate a signed admin JWT
-      const token = jwt.sign(
-        { isAdmin: true, username: user.username, canDelete },
+      const adminToken = jwt.sign(
+        { isAdmin: true, username: user.email, canDelete },
         process.env.JWT_SECRET,
         { expiresIn: '30d' }
       );
 
       return res.json({
         authorized: true,
-        token,
-        user: { username: user.username, isAdmin: true, canDelete }
+        token: adminToken,
+        user: { username: user.username || user.email, isAdmin: true, canDelete }
       });
     }
 
     return res.json({
       authorized: false,
       forbidden: true,
-      message: "Your GitHub account is not authorized to access the admin portal."
+      message: "Your Google account is not authorized to access the admin portal."
     });
   } catch (error) {
     res.status(500).json({ message: 'Internal Server Error', error: error.message });
@@ -97,4 +99,3 @@ router.get('/admin-check', async (req, res) => {
 });
 
 module.exports = router;
-

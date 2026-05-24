@@ -13,7 +13,7 @@ const jwt = require('jsonwebtoken');
  *  - Does NOT perform any database lookup
  *
  * This guarantees admin sessions are completely isolated from the user frontend,
- * which relies on HttpOnly cookies tied to GitHub OAuth user records.
+ * which relies on HttpOnly cookies tied to Google OAuth user records.
  */
 const adminAuth = async (req, res, next) => {
   try {
@@ -40,7 +40,7 @@ const adminAuth = async (req, res, next) => {
     // Query the database whitelist to ensure the user is still whitelisted
     const AdminWhitelist = require('../models/AdminWhitelist');
     const whitelistRecord = await AdminWhitelist.findOne({
-      githubUsername: username ? username.toLowerCase() : ''
+      email: username ? username.toLowerCase() : ''
     });
 
     if (!whitelistRecord) {

@@ -1,6 +1,6 @@
 const mockUser = {
   id: "u1",
-  githubId: "gh_42",
+  googleId: "google_42",
   username: "alex.dev",
   email: "alex@swc.edu",
   avatarUrl: "https://i.pravatar.cc/120?img=12",
