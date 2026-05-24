@@ -16,6 +16,7 @@ import ModuleCatalog from "./pages/ModuleCatalog";
 import ModuleDetail from "./pages/ModuleDetail";
 import Leaderboard from "./pages/Leaderboard";
 import Onboarding from "./pages/Onboarding";
+import Login from "./pages/Login";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -23,7 +24,7 @@ const ProtectedRoute = ({ children }) => {
 
   useEffect(() => {
     if (!loading && !user) {
-      window.location.assign("/login.html");
+      navigate("/login");
     }
   }, [loading, user]);
 
@@ -63,6 +64,7 @@ const App = () => {
         <Router>
           <Routes>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/auth-callback" element={<AuthCallback />} />
             <Route path="/onboarding" element={<Onboarding />} />
 
