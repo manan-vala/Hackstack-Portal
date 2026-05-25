@@ -6,7 +6,7 @@ const AdminWhitelist = require('../models/AdminWhitelist');
 const authMiddleware = (req, res, next) => {
   const token = req.cookies?.admin_maker_token;
   if (!token) {
-    return res.redirect('/admin-whitelist/login');
+    return res.redirect('/hackstack/admin-whitelist/login');
   }
 
   try {
@@ -15,9 +15,9 @@ const authMiddleware = (req, res, next) => {
       req.user = decoded;
       return next();
     }
-    return res.redirect('/admin-whitelist/login');
+    return res.redirect('/hackstack/admin-whitelist/login');
   } catch (err) {
-    return res.redirect('/admin-whitelist/login');
+    return res.redirect('/hackstack/admin-whitelist/login');
   }
 };
 
@@ -28,7 +28,7 @@ router.get('/login', (req, res) => {
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET || 'hackstack_portal_jwt_67');
       if (decoded && decoded.isAdminMaker) {
-        return res.redirect('/admin-whitelist');
+        return res.redirect('/hackstack/admin-whitelist');
       }
     } catch (e) {}
   }
@@ -52,7 +52,7 @@ router.post('/login', (req, res) => {
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
     });
-    return res.redirect('/admin-whitelist');
+    return res.redirect('/hackstack/admin-whitelist');
   } else {
     return res.render('login', { error: 'Invalid User ID or Password' });
   }
@@ -61,7 +61,7 @@ router.post('/login', (req, res) => {
 // GET /admin-whitelist/logout
 router.get('/logout', (req, res) => {
   res.clearCookie('admin_maker_token');
-  res.redirect('/admin-whitelist/login');
+  res.redirect('/hackstack/admin-whitelist/login');
 });
 
 // GET /admin-whitelist (Dashboard)
@@ -86,7 +86,7 @@ router.post('/add', authMiddleware, async (req, res) => {
 
   try {
     await AdminWhitelist.create({ email, canDelete });
-    res.redirect('/admin-whitelist');
+    res.redirect('/hackstack/admin-whitelist');
   } catch (err) {
     const list = await AdminWhitelist.find().sort({ createdAt: -1 });
     const errMsg = err.code === 11000 ? 'Email is already whitelisted.' : err.message;
@@ -98,7 +98,7 @@ router.post('/add', authMiddleware, async (req, res) => {
 router.post('/remove/:id', authMiddleware, async (req, res) => {
   try {
     await AdminWhitelist.findByIdAndDelete(req.params.id);
-    res.redirect('/admin-whitelist');
+    res.redirect('/hackstack/admin-whitelist');
   } catch (err) {
     const list = await AdminWhitelist.find().sort({ createdAt: -1 });
     res.render('manage-whitelist', { list, error: 'Failed to remove email: ' + err.message, success: null });
@@ -113,7 +113,7 @@ router.post('/toggle-delete/:id', authMiddleware, async (req, res) => {
       admin.canDelete = !admin.canDelete;
       await admin.save();
     }
-    res.redirect('/admin-whitelist');
+    res.redirect('/hackstack/admin-whitelist');
   } catch (err) {
     const list = await AdminWhitelist.find().sort({ createdAt: -1 });
     res.render('manage-whitelist', { list, error: 'Failed to update permission: ' + err.message, success: null });

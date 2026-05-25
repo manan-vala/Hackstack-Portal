@@ -283,7 +283,7 @@ export default function Login() {
   }, []);
 
   const handleGoogleLogin = () => {
-    window.location.href = "/api/auth/google";
+    window.location.href = "/hackstack/api/auth/google";
   };
 
   return (

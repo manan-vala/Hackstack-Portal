@@ -288,7 +288,7 @@
         <div class="logo">Hackstack Administration</div>
         <h1 class="title"></h1>
       </div>
-      <a href="/admin-whitelist/logout" class="btn-logout">Logout</a>
+      <a href="/hackstack/api/admin-whitelist/logout" class="btn-logout">Logout</a>
     </header>
 
     <% if (error) { %>
@@ -306,7 +306,7 @@
     <!-- Add Admin Form -->
     <div class="card">
       <div class="card-title">Whitelist a Google Account</div>
-      <form action="/admin-whitelist/add" method="POST">
+      <form action="/hackstack/api/admin-whitelist/add" method="POST">
         <div class="form-row">
           <div class="form-group-input">
             <input type="email" name="email" placeholder="e.g. user@gmail.com" required autocomplete="off">
@@ -350,13 +350,13 @@
                 <td>
                   <div class="actions-cell">
                     <!-- Toggle delete permission -->
-                    <form action="/admin-whitelist/toggle-delete/<%= item._id %>" method="POST">
+                    <form action="/hackstack/api/admin-whitelist/toggle-delete/<%= item._id %>" method="POST">
                       <button type="submit" class="btn-action">
                         <%= item.canDelete ? 'Revoke Delete' : 'Grant Delete' %>
                       </button>
                     </form>
                     <!-- Remove from whitelist -->
-                    <form action="/admin-whitelist/remove/<%= item._id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove <%= item.email %>?');">
+                    <form action="/hackstack/api/admin-whitelist/remove/<%= item._id %>" method="POST" onsubmit="return confirm('Are you sure you want to remove <%= item.email %>?');">
                       <button type="submit" class="btn-action btn-danger">Remove</button>
                     </form>
                   </div>
