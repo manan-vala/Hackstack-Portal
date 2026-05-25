@@ -7,7 +7,6 @@ export function DashboardHero({ username, summary }) {
     <header className="dashboard-hero">
       <div className="dashboard-hero-copy">
         <span className="dashboard-pill">
-          <Sparkles size={14} />
           learning cockpit
         </span>
 
@@ -34,8 +33,8 @@ export function DashboardHero({ username, summary }) {
       <div className="dashboard-hero-panel">
         <div className="dashboard-hero-panel-top">
           <div>
-            <span>Completion snapshot</span>
-            <strong>{summary.averageCompletion}%</strong>
+            <span className="font-display">Completion snapshot</span>
+            <strong>{summary.averageCompletion} %</strong>
           </div>
           <div className="dashboard-hero-medal">
             <Trophy size={18} />
@@ -56,8 +55,8 @@ export function DashboardHero({ username, summary }) {
 function HeroMetric({ label, value }) {
   return (
     <div className="dashboard-hero-metric">
-      <span>{label}</span>
-      <strong>{value}</strong>
+      <span className="font-outfit">{label}</span>
+      <strong className="font-display">{value}</strong>
     </div>
   );
 }
