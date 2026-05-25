@@ -8,10 +8,10 @@ const adminHtmlFallback = () => ({
     server.middlewares.use((req, res, next) => {
       const url = req.url.split("?")[0];
       if (
-        (url === "/admin" || url.startsWith("/admin/")) &&
+        (url === "/hackstack/admin" || url.startsWith("/hackstack/admin/")) &&
         !url.includes(".")
       ) {
-        req.url = "/admin.html";
+        req.url = "/hackstack/admin.html";
       }
       next();
     });
