@@ -18,13 +18,13 @@ export function DashboardStats({ summary }) {
     <section className="dashboard-stats">
       <StatCard
         label="Quiz progress"
-        value={`${summary.totalQuizAttempts}/${summary.totalQuizzes}`}
+        value={`${summary.totalQuizAttempts} / ${summary.totalQuizzes}`}
         detail={`${quizPercent}% of available quizzes attempted`}
         progress={quizPercent}
       />
       <StatCard
         label="Learning days"
-        value={`${summary.completedDays}/${summary.totalDays}`}
+        value={`${summary.completedDays} / ${summary.totalDays}`}
         detail={`${dayPercent}% of tracked days complete`}
         progress={dayPercent}
       />
@@ -36,7 +36,7 @@ export function DashboardStats({ summary }) {
       />
       <StatCard
         label="Module completion"
-        value={`${summary.completedModules}/${summary.registeredModules}`}
+        value={`${summary.completedModules} / ${summary.registeredModules}`}
         detail={`${completionShare}% of enrolled modules wrapped up`}
         progress={completionShare}
       />
@@ -47,7 +47,7 @@ export function DashboardStats({ summary }) {
 function StatCard({ label, value, detail, progress }) {
   return (
     <article className="dashboard-stat-card">
-      <span>{label}</span>
+      <span className="font-outfit">{label}</span>
       <strong>{value}</strong>
       <p>{detail}</p>
       <div className="dashboard-stat-progress">

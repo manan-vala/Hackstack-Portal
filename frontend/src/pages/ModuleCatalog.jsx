@@ -88,7 +88,6 @@ function ModuleCatalog() {
     <div className="modules-shell">
       <header className="modules-hero">
         <span className="modules-pill">
-          <Sparkles size={14} />
           {learningSummary.totalStacks} stacks · {learningSummary.totalDays} days
           · build something real
         </span>

@@ -38,7 +38,7 @@ export function ProfileModal({ isOpen, onClose, user }) {
             {/* Header / Close button */}
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
-                <Sparkles className="text-cyan-500 size-5" />
+                <span className="text-xl text-[#00b8db] rotate-45">&#8984;</span>
                 <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm tracking-wide uppercase">
                   Student Profile
                 </span>
@@ -64,7 +64,7 @@ export function ProfileModal({ isOpen, onClose, user }) {
                   Active
                 </span>
               </div>
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
+              <h3 className="text-xl font-bold leading-tight" style={{color : "white"}}>
                 {user?.name || "Student"}
               </h3>
               <p className="text-sm text-cyan-600 dark:text-cyan-400 font-medium mt-0.5">

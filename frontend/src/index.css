@@ -1,8 +1,9 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@100..900&family=Space+Grotesk:wght@500;700&display=swap");
 
 :root {
   --font-body: "Manrope", sans-serif;
   --font-display: "Space Grotesk", sans-serif;
+  --font-outfit: "Outfit", sans-serif;
   --page-bg:
     radial-gradient(circle at top left, rgba(255, 145, 77, 0.15), transparent 26%),
     radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 24%),
@@ -77,6 +78,10 @@ input,
 textarea,
 select {
   font-family: inherit;
+}
+
+.font-outfit {
+  font-family: var(--font-outfit);
 }
 
 #root {

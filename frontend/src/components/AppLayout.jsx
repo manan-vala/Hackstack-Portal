@@ -3,7 +3,6 @@ import LibraryBig from "lucide-react/dist/esm/icons/library-big";
 import Trophy from "lucide-react/dist/esm/icons/trophy";
 import MoonStar from "lucide-react/dist/esm/icons/moon-star";
 import SunMedium from "lucide-react/dist/esm/icons/sun-medium";
-import Sparkles from "lucide-react/dist/esm/icons/sparkles";
 import LogOut from "lucide-react/dist/esm/icons/log-out";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
@@ -81,7 +80,12 @@ export function AppLayout({ children }) {
       <aside className="portal-sidebar">
         <div className="portal-brand">
           <div className="portal-brand-mark">
-            <Sparkles size={18} />
+            <img
+              src={`${import.meta.env.BASE_URL}swc-logo.webp`}
+              alt="Hackstack logo"
+              width={22}
+              height={22}
+            />
           </div>
           <div className="portal-brand-copy">
             <strong>Hackstack</strong>

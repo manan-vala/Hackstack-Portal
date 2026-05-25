@@ -142,12 +142,19 @@ html[data-theme="dark"] .dashboard-hero-copy {
   text-transform: uppercase;
 }
 
+.dashboard-hero-panel-top span {
+  font-size: 1.2rem;
+  font-family: var(--font-display);
+  letter-spacing: 0.1em;
+}
+
 .dashboard-hero-panel-top strong {
   display: block;
   margin-top: 0.5rem;
   font-size: 2.4rem;
   letter-spacing: -0.06em;
   color: var(--text-strong);
+  font-family: var(--font-display);
 }
 
 .dashboard-hero-medal {
@@ -178,6 +185,7 @@ html[data-theme="dark"] .dashboard-hero-copy {
   margin-top: 0.5rem;
   color: var(--text-strong);
   font-size: 1.3rem;
+  font-family: var(--font-display);
 }
 
 .dashboard-stats {
@@ -190,12 +198,17 @@ html[data-theme="dark"] .dashboard-hero-copy {
   padding: 1.35rem;
 }
 
+.dashboard-stat-card span {
+  font-size: 0.95rem;
+}
+
 .dashboard-stat-card strong {
   display: block;
   margin-top: 0.55rem;
   color: var(--text-strong);
   font-size: 1.8rem;
   letter-spacing: -0.05em;
+  font-family: var(--font-body);
 }
 
 .dashboard-stat-card p,
@@ -204,6 +217,10 @@ html[data-theme="dark"] .dashboard-hero-copy {
   margin: 0.7rem 0 0;
   color: var(--muted);
   line-height: 1.65;
+}
+
+.dashboard-stat-card p {
+  font-family: var(--font-outfit);
 }
 
 .dashboard-stat-progress {
