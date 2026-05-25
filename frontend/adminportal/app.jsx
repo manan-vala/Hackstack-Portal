@@ -18,7 +18,7 @@ import AdminProtectedRoute from "./admin-protected-route";
 
 export default function AdminApp() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/hackstack">
       <Routes>
         {/* ── Admin routes ────────────────────────────────────────────── */}
         <Route path="/" element={<Navigate to="/admin/login" replace />} />
