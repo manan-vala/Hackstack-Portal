@@ -45,7 +45,7 @@ async function parseJsonResponse(res, fallbackMessage) {
     if (res.status === 401) {
       localStorage.removeItem("jwt");
       localStorage.removeItem("adminUser");
-      window.location.href = "/hackstack/login.html";
+      window.location.href = "/hackstack/admin/login";
     }
     throw new Error(data.message || fallbackMessage);
   }

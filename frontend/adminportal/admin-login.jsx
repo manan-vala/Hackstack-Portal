@@ -47,7 +47,7 @@ export default function AdminLogin() {
         } else if (data.forbidden) {
           localStorage.removeItem("jwt");
           localStorage.removeItem("adminUser");
-          window.location.assign("/hackstack/login.html");
+          window.location.assign("/hackstack/login");
         } else {
           setChecking(false);
         }
