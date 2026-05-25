@@ -142,7 +142,11 @@ const Onboarding = () => {
     else if (!/^[a-zA-Z0-9_.-]+$/.test(form.username.trim())) newErrors.username = 'Letters, numbers, _ . - only';
     if (!form.college.trim()) newErrors.college = 'College is required';
     if (!form.year) newErrors.year = 'Year is required';
-    if (!form.rollNumber.trim()) newErrors.rollNumber = 'Roll number is required';
+    if (!form.rollNumber.trim()) {
+      newErrors.rollNumber = 'Roll number is required';
+    } else if (!/^[0-9]{9,}$/.test(form.rollNumber.trim())) {
+      newErrors.rollNumber = 'Roll number must be at least 9 digits';
+    }
     if (!form.programme) newErrors.programme = 'Programme is required';
     if (!form.countryCode.trim()) newErrors.countryCode = 'Country code is required';
     else if (!/^\+[0-9]{1,4}$/.test(form.countryCode.trim())) newErrors.countryCode = 'Must be + followed by 1-4 digits';
@@ -353,9 +357,9 @@ const Onboarding = () => {
 
             <div className="onboarding-field">
               <label htmlFor="onb-mobile">Mobile Number</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
+              <div className="onboarding-field-row">
                 {isCustomCountryCode ? (
-                  <div style={{ display: 'flex', gap: '4px', width: '130px', flexShrink: 0 }}>
+                  <div className="onboarding-country-code-group">
                     <input
                       type="text"
                       name="countryCode"
@@ -368,7 +372,6 @@ const Onboarding = () => {
                       }}
                       placeholder="+XX"
                       maxLength={5}
-                      style={{ width: '80px', flexShrink: 0 }}
                       className={errors.countryCode ? 'is-error' : ''}
                     />
                     <button
@@ -378,20 +381,7 @@ const Onboarding = () => {
                         setForm(prev => ({ ...prev, countryCode: '+91' }));
                         setErrors(prev => ({ ...prev, countryCode: '' }));
                       }}
-                      style={{
-                        flexGrow: 1,
-                        padding: '0 4px',
-                        fontSize: '0.9rem',
-                        background: '#cbd5e1',
-                        border: '2px solid #94a3b8',
-                        borderRadius: '4px',
-                        color: '#1e293b',
-                        cursor: 'pointer',
-                        fontFamily: 'VT323, monospace',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
+                      className="onboarding-country-button"
                     >
                       List
                     </button>
@@ -409,8 +399,7 @@ const Onboarding = () => {
                         handleChange(e);
                       }
                     }}
-                    style={{ width: '130px', flexShrink: 0 }}
-                    className={errors.countryCode ? 'is-error' : ''}
+                    className={errors.countryCode ? 'is-error onboarding-country-code-select' : 'onboarding-country-code-select'}
                   >
                     <option value="+91">+91 (IN)</option>
                     <option value="+1">+1 (US)</option>
@@ -431,10 +420,9 @@ const Onboarding = () => {
                   value={form.mobileNumber}
                   onChange={handleChange}
                   placeholder="10-digit number"
-                  className={errors.mobileNumber ? 'is-error' : ''}
+                  className={errors.mobileNumber ? 'is-error onboarding-mobile-input' : 'onboarding-mobile-input'}
                   autoComplete="tel"
                   maxLength={10}
-                  style={{ flexGrow: 1 }}
                 />
               </div>
               <span className={`onboarding-field-hint ${errors.mobileNumber || errors.countryCode ? 'is-error' : ''}`}>

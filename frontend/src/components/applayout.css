@@ -161,6 +161,7 @@ html[data-theme="dark"] .portal-sidebar {
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
+  font-family: var(--font-display);
 }
 
 .portal-topbar-copy h1 {
@@ -174,6 +175,7 @@ html[data-theme="dark"] .portal-sidebar {
   margin-top: 0.55rem;
   color: var(--muted);
   line-height: 1.7;
+  font-family: var(--font-body);
 }
 
 .portal-topbar-actions {
