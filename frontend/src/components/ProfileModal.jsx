@@ -1,167 +1,351 @@
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  User,
-  AtSign,
   Mail,
   Phone,
   GraduationCap,
   Calendar,
   X,
-  Sparkles,
   Hash,
-  BookOpen
+  BookOpen,
+  CheckCircle2,
 } from "lucide-react";
+
+const modalStyles = `
+  .profile-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    background: rgba(27, 39, 180, 0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  .profile-modal {
+    position: relative;
+    width: 100%;
+    max-width: 480px;
+    background: var(--color-surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-md);
+    box-shadow: 0 24px 64px rgba(27, 39, 180, 0.18);
+    padding: 28px;
+    overflow: hidden;
+  }
+
+  .profile-modal-accent {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 96px;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    z-index: 0;
+  }
+
+  .profile-modal-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 40px;
+  }
+
+  .profile-header-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    color: rgba(255, 247, 235, 0.90);
+  }
+
+  .profile-close-btn {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 247, 235, 0.15);
+    border: 1px solid rgba(255, 247, 235, 0.20);
+    color: rgba(255, 247, 235, 0.85);
+    cursor: pointer;
+    transition: background 180ms ease, color 180ms ease;
+  }
+
+  .profile-close-btn:hover {
+    background: rgba(255, 247, 235, 0.25);
+    color: #fff;
+  }
+
+  .profile-avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .profile-avatar-ring {
+    position: relative;
+    margin-bottom: 12px;
+  }
+
+  .profile-avatar-img {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--color-surface);
+    box-shadow: 0 8px 24px rgba(27, 39, 180, 0.20);
+  }
+
+  .profile-avatar-fallback {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    border: 3px solid var(--color-surface);
+    box-shadow: 0 8px 24px rgba(27, 39, 180, 0.20);
+    display: grid;
+    place-items: center;
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-surface);
+  }
+
+  .profile-active-badge {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--color-accent-1);
+    color: #3a2800;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    border: 2px solid var(--color-surface);
+  }
+
+  .profile-name {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-strong);
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+
+  .profile-username {
+    margin-top: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-primary);
+  }
+
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .profile-field {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--line);
+    background: var(--surface-subtle);
+    transition: border-color 180ms ease, background 180ms ease;
+  }
+
+  .profile-field:hover {
+    border-color: var(--line-strong);
+    background: var(--surface-solid);
+  }
+
+  .profile-field-icon {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-sm);
+    background: var(--accent-soft);
+    color: var(--accent-strong);
+    flex-shrink: 0;
+  }
+
+  .profile-field-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 3px;
+    font-family: var(--font-body);
+  }
+
+  .profile-field-value {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-strong);
+    font-family: var(--font-body);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 140px;
+  }
+
+  .profile-footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .profile-close-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    color: var(--color-surface);
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(48, 62, 210, 0.25);
+    transition: opacity 180ms ease, transform 180ms ease;
+  }
+
+  .profile-close-primary:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+  }
+
+  .profile-close-primary:active {
+    transform: translateY(0);
+  }
+
+  @media (max-width: 480px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+    .profile-field-value {
+      max-width: 100%;
+    }
+  }
+`;
+
+const FIELDS = (user) => [
+  { icon: Mail,           label: "Email Address",    value: user?.email || "—" },
+  { icon: Phone,          label: "Mobile Number",    value: user?.countryCode && user?.mobileNumber ? `${user.countryCode} ${user.mobileNumber}` : user?.mobileNumber || "—" },
+  { icon: GraduationCap,  label: "College / Institute", value: user?.college || "—" },
+  { icon: Calendar,       label: "Year of Study",    value: user?.year || "—" },
+  { icon: Hash,           label: "Roll Number",      value: user?.rollNumber || "—" },
+  { icon: BookOpen,       label: "Programme",        value: user?.programme === "Btech" ? "B.Tech" : user?.programme === "Mtech" ? "M.Tech" : user?.programme || "—" },
+];
 
 export function ProfileModal({ isOpen, onClose, user }) {
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/72 backdrop-blur-md p-4"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
-          }}
-        >
+    <>
+      <style>{modalStyles}</style>
+      <AnimatePresence>
+        {isOpen && (
           <motion.div
-            initial={{ scale: 0.95, y: 15, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.95, y: 15, opacity: 0 }}
-            transition={{ type: "spring", duration: 0.4 }}
-            className="relative w-full max-w-lg overflow-hidden border border-slate-200/10 dark:border-slate-800/80 bg-white/95 dark:bg-slate-900/95 shadow-2xl rounded-3xl p-6 md:p-8"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="profile-overlay"
+            onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
           >
-            {/* Background Accent Gradients */}
-            <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-br from-cyan-500/10 to-indigo-500/10 -z-10" />
+            <motion.div
+              initial={{ scale: 0.96, y: 12, opacity: 0 }}
+              animate={{ scale: 1, y: 0, opacity: 1 }}
+              exit={{ scale: 0.96, y: 12, opacity: 0 }}
+              transition={{ type: "spring", duration: 0.35, bounce: 0.18 }}
+              className="profile-modal"
+            >
+              {/* Brand blue header strip */}
+              <div className="profile-modal-accent" />
 
-            {/* Header / Close button */}
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-2">
-                <span className="text-xl text-[#00b8db] rotate-45">&#8984;</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm tracking-wide uppercase">
-                  Student Profile
-                </span>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-2 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-
-            {/* Avatar & Basic Info */}
-            <div className="flex flex-col items-center text-center mb-6">
-              <div className="relative mb-3">
-                <img
-                  src={user?.avatarUrl || "https://api.dicebear.com/7.x/pixel-art/svg"}
-                  alt={user?.name || "Student Avatar"}
-                  className="w-24 h-24 rounded-full border-4 border-cyan-500/20 object-cover shadow-md"
-                />
-                <span className="absolute bottom-0 right-0 bg-cyan-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow">
-                  Active
-                </span>
-              </div>
-              <h3 className="text-xl font-bold leading-tight" style={{color : "white"}}>
-                {user?.name || "Student"}
-              </h3>
-              <p className="text-sm text-cyan-600 dark:text-cyan-400 font-medium mt-0.5">
-                @{user?.username || "student"}
-              </p>
-            </div>
-
-            {/* Detailed Info Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <Mail className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Email Address
+              <div className="profile-modal-content">
+                {/* Header row */}
+                <div className="profile-header">
+                  <span className="profile-header-label">
+                    Student Profile
                   </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.email || "—"}
-                  </span>
+                  <button type="button" className="profile-close-btn" onClick={onClose} aria-label="Close profile">
+                    <X size={15} />
+                  </button>
+                </div>
+
+                {/* Avatar */}
+                <div className="profile-avatar-wrap">
+                  <div className="profile-avatar-ring">
+                    {user?.avatarUrl ? (
+                      <img
+                        src={user.avatarUrl}
+                        alt={user?.name || "Avatar"}
+                        className="profile-avatar-img"
+                      />
+                    ) : (
+                      <div className="profile-avatar-fallback">
+                        {(user?.username || "S").slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                    <span className="profile-active-badge">
+                      <CheckCircle2 size={9} /> Active
+                    </span>
+                  </div>
+                  <h3 className="profile-name">{user?.name || "Student"}</h3>
+                  <p className="profile-username">@{user?.username || "student"}</p>
+                </div>
+
+                {/* Info grid */}
+                <div className="profile-grid">
+                  {FIELDS(user).map(({ icon: Icon, label, value }) => (
+                    <div key={label} className="profile-field">
+                      <div className="profile-field-icon">
+                        <Icon size={14} />
+                      </div>
+                      <div style={{ minWidth: 0 }}>
+                        <span className="profile-field-label">{label}</span>
+                        <span className="profile-field-value" title={value}>{value}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Footer */}
+                <div className="profile-footer">
+                  <button type="button" className="profile-close-primary" onClick={onClose}>
+                    Close Profile
+                  </button>
                 </div>
               </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <Phone className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Mobile Number
-                  </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.countryCode && user?.mobileNumber ? `${user.countryCode} ${user.mobileNumber}` : user?.mobileNumber || "—"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <GraduationCap className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    College / Institute
-                  </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.college || "—"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <Calendar className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Year of Study
-                  </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.year || "—"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <Hash className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Roll Number
-                  </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.rollNumber || "—"}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-950/40">
-                <BookOpen className="text-slate-400 dark:text-slate-500 size-5 shrink-0" />
-                <div className="min-w-0">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                    Programme
-                  </span>
-                  <span className="block text-sm font-medium text-slate-700 dark:text-slate-300 truncate">
-                    {user?.programme === "Btech" ? "B.Tech" :
-                     user?.programme === "Mtech" ? "M.Tech" :
-                     user?.programme || "—"}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Action / Close button */}
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={onClose}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-semibold text-sm transition-colors shadow-sm"
-              >
-                Close Profile
-              </button>
-            </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        )}
+      </AnimatePresence>
+    </>
   );
 }

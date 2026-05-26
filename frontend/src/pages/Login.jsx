@@ -55,7 +55,8 @@ const loginStyles = `
     min-height: 250px;
     z-index: 1;
     pointer-events: none;
-    background: url('/background.png') repeat-x bottom center;
+    background-repeat: repeat-x;
+    background-position: bottom center;
     background-size: contain;
     image-rendering: pixelated;
   }
@@ -299,7 +300,10 @@ export default function Login() {
         <div className="login-sparkle" style={{ top: "35%", left: "5%", animationDelay: "2s" }} />
 
         {/* Clouds */}
-        <div className="login-clouds" />
+        <div
+          className="login-clouds"
+          style={{ backgroundImage: `url('${import.meta.env.BASE_URL}background.png')` }}
+        />
 
         {/* ASCII Logo */}
         <div className="login-ascii-logo">

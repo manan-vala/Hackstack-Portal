@@ -63,7 +63,7 @@ exports.getDashboard = async (req, res) => {
           ? Math.round((moduleCompletedDays / moduleTotalDays) * 100)
           : 0;
 
-      if (progress?.moduleCompleted) completedModules += 1;
+      if (moduleTotalDays > 0 && moduleCompletedDays >= moduleTotalDays) completedModules += 1;
 
       totalDays += moduleTotalDays;
       completedDays += moduleCompletedDays;

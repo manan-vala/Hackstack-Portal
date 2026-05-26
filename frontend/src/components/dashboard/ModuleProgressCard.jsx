@@ -1,4 +1,4 @@
-import { ArrowUpRight, BarChart3, CircleCheckBig, Target } from "lucide-react";
+import { ArrowUpRight, BarChart3, CircleCheckBig, Target, CheckCircle2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getModuleTheme } from "../../utils/moduleAdapter";
 import "./dashboard.css";
@@ -42,7 +42,15 @@ export function ModuleProgressCard({ row, index = 0 }) {
           <h3>{title}</h3>
           <p>{description}</p>
         </div>
-        <div className="dashboard-module-badge">{completionPercent}%</div>
+        <div className="dashboard-module-badge">
+          {completionPercent === 100 ? (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700 }}>
+              <CheckCircle2 size={15} /> Done
+            </span>
+          ) : (
+            `${completionPercent}%`
+          )}
+        </div>
       </div>
 
       <div className="dashboard-module-card-body">
@@ -52,9 +60,16 @@ export function ModuleProgressCard({ row, index = 0 }) {
           <span>{lastSynced}</span>
         </div>
 
-        <div className="dashboard-module-progress">
-          <div style={{ width: `${completionPercent}%`, background: moduleTheme.button }} />
-        </div>
+        {completionPercent === 100 ? (
+          <div className="dashboard-module-completed-badge">
+            <CheckCircle2 size={16} />
+            All days completed — module finished!
+          </div>
+        ) : (
+          <div className="dashboard-module-progress">
+            <div style={{ width: `${completionPercent}%`, background: moduleTheme.button }} />
+          </div>
+        )}
 
         <div className="dashboard-module-stats">
           <MiniStat

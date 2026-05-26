@@ -156,7 +156,15 @@ function ModuleCatalog() {
                       </div>
                     </div>
 
-                    <div className="module-card-percent">{completionPercent}%</div>
+                    <div className="module-card-percent">
+                      {completionPercent === 100 ? (
+                        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 13, fontWeight: 700 }}>
+                          <CheckCircle2 size={14} /> Done
+                        </span>
+                      ) : (
+                        `${completionPercent}%`
+                      )}
+                    </div>
                   </div>
 
                   <div className="module-card-body">
@@ -171,9 +179,16 @@ function ModuleCatalog() {
                       </span>
                     </div>
 
-                    <div className="module-progress">
-                      <div style={{ width: `${completionPercent}%` }} />
-                    </div>
+                    {completionPercent === 100 ? (
+                      <div className="module-completed-strip">
+                        <CheckCircle2 size={15} />
+                        All days completed — module finished!
+                      </div>
+                    ) : (
+                      <div className="module-progress">
+                        <div style={{ width: `${completionPercent}%` }} />
+                      </div>
+                    )}
 
                     <div className="module-card-actions">
                       {isRegistered ? (
@@ -181,7 +196,7 @@ function ModuleCatalog() {
                           to={`/modules/${module.slug}`}
                           className="module-primary-button"
                         >
-                          {completedDays > 0 ? "Resume" : "Start"}
+                          {completionPercent === 100 ? "Review module" : completedDays > 0 ? "Resume" : "Start"}
                           <ArrowRight size={15} />
                         </Link>
                       ) : (

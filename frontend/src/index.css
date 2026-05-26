@@ -1,63 +1,73 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Outfit:wght@100..900&family=Space+Grotesk:wght@500;700&display=swap");
+/* ── Hackstack Brand Fonts ─────────────────────────────────────────────────── */
+/* Clash Grotesk — Display typeface (Fontshare CDN) */
+@import url("https://api.fontshare.com/v2/css?f[]=clash-grotesk@400,500,600,700&display=swap");
+/* Roboto — Body typeface (Google Fonts) */
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap");
 
+/* ── Brand Design Tokens ──────────────────────────────────────────────────── */
 :root {
-  --font-body: "Manrope", sans-serif;
-  --font-display: "Space Grotesk", sans-serif;
-  --font-outfit: "Outfit", sans-serif;
+  /* Brand colors */
+  --color-primary:   #303ED2;
+  --color-secondary: #1B27B4;
+  --color-surface:   #FFF7EB;
+  --color-accent-1:  #EEC04A;
+  --color-accent-2:  #FFAF38;
+
+  /* Typography */
+  --font-display: 'Clash Grotesk', sans-serif;
+  --font-body:    'Roboto', sans-serif;
+
+  /* Corner radius */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+
+  /* Spacing scale (base-8) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  /* ── Semantic UI tokens (light / brand palette) ── */
   --page-bg:
-    radial-gradient(circle at top left, rgba(255, 145, 77, 0.15), transparent 26%),
-    radial-gradient(circle at top right, rgba(37, 99, 235, 0.08), transparent 24%),
-    #f3f6fb;
-  --surface: rgba(255, 255, 255, 0.92);
-  --surface-solid: #ffffff;
-  --surface-subtle: #f8fbff;
-  --text-strong: #081223;
-  --text: #273244;
-  --muted: #5e6c81;
-  --line: rgba(10, 22, 41, 0.09);
-  --line-strong: rgba(10, 22, 41, 0.14);
-  --accent: #2e78ff;
-  --accent-strong: #0f4ddb;
-  --accent-soft: rgba(46, 120, 255, 0.12);
-  --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.08);
-  --shadow-strong: 0 28px 80px rgba(15, 23, 42, 0.12);
-  --success-bg: #eafcf3;
+    radial-gradient(circle at 10% 0%, rgba(48, 62, 210, 0.07), transparent 32%),
+    radial-gradient(circle at 90% 10%, rgba(238, 192, 74, 0.06), transparent 28%),
+    #F5EFE4;
+
+  --surface:        rgba(255, 247, 235, 0.96);
+  --surface-solid:  #FFF7EB;
+  --surface-subtle: #F0E8D8;
+
+  --text-strong:    #0E1340;
+  --text:           #2A3060;
+  --muted:          #6B71A8;
+
+  --line:           rgba(27, 39, 180, 0.10);
+  --line-strong:    rgba(27, 39, 180, 0.18);
+
+  --accent:         #303ED2;
+  --accent-strong:  #1B27B4;
+  --accent-soft:    rgba(48, 62, 210, 0.10);
+
+  --shadow-soft:    0 8px 32px rgba(27, 39, 180, 0.08);
+  --shadow-strong:  0 20px 60px rgba(27, 39, 180, 0.14);
+
+  --success-bg:     #eafcf3;
   --success-border: rgba(30, 173, 96, 0.22);
-  --warning-bg: #fff7e7;
-  --warning-border: rgba(227, 162, 23, 0.22);
-  --danger-bg: #fff1f1;
-  --danger-border: rgba(223, 67, 67, 0.22);
+  --warning-bg:     rgba(255, 175, 56, 0.10);
+  --warning-border: rgba(238, 192, 74, 0.35);
+  --danger-bg:      #fff1f1;
+  --danger-border:  rgba(223, 67, 67, 0.22);
 }
 
-html[data-theme="dark"] {
-  --page-bg:
-    radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 24%),
-    radial-gradient(circle at top right, rgba(94, 92, 230, 0.16), transparent 28%),
-    #08111d;
-  --surface: rgba(8, 17, 30, 0.82);
-  --surface-solid: #091322;
-  --surface-subtle: #0d1728;
-  --text-strong: #f7fbff;
-  --text: #d3dce7;
-  --muted: #9aabc2;
-  --line: rgba(255, 255, 255, 0.08);
-  --line-strong: rgba(255, 255, 255, 0.12);
-  --accent: #8ab4ff;
-  --accent-strong: #5f8cff;
-  --accent-soft: rgba(96, 165, 250, 0.18);
-  --shadow-soft: 0 24px 48px rgba(2, 6, 23, 0.38);
-  --shadow-strong: 0 30px 80px rgba(2, 6, 23, 0.5);
-  --success-bg: rgba(11, 72, 44, 0.34);
-  --success-border: rgba(52, 211, 153, 0.18);
-  --warning-bg: rgba(111, 74, 10, 0.32);
-  --warning-border: rgba(245, 158, 11, 0.2);
-  --danger-bg: rgba(93, 22, 22, 0.34);
-  --danger-border: rgba(248, 113, 113, 0.18);
-}
-
+/* ── Base ─────────────────────────────────────────────────────────────────── */
 html {
   min-height: 100%;
-  background: #f3f6fb;
+  background: #F5EFE4;
+  font-size: 16px;
 }
 
 body {
@@ -80,10 +90,6 @@ select {
   font-family: inherit;
 }
 
-.font-outfit {
-  font-family: var(--font-outfit);
-}
-
 #root {
   min-height: 100vh;
 }
@@ -100,6 +106,7 @@ h3,
 h4 {
   color: var(--text-strong);
   font-family: var(--font-display);
+  margin: 0;
 }
 
 a {

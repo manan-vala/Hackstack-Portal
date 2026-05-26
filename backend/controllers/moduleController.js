@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Module = require('../models/Module');
 const User = require('../models/User');
 const Progress = require('../models/Progress');
+const Quiz = require('../models/Quiz');
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
@@ -172,13 +173,16 @@ exports.deleteModule = async (req, res) => {
     const Leaderboard = require('../models/Leaderboard');
     await Leaderboard.deleteMany({ moduleId });
 
-    // 5. Delete the module itself
+    // 5. Delete all quizzes belonging to this module
+    await Quiz.deleteMany({ moduleId });
+
+    // 6. Delete the module itself
     const moduleDoc = await Module.findByIdAndDelete(moduleId);
     if (!moduleDoc) {
       return res.status(404).json({ message: 'Module not found.' });
     }
 
-    // 6. Recalculate/Sync all leaderboards
+    // 7. Recalculate/Sync all leaderboards
     const syncLeaderboards = require('../utils/leaderboardSync');
     await syncLeaderboards();
 

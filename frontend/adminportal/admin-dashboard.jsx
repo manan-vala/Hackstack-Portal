@@ -10,10 +10,8 @@ import { useAdminAuth } from "./admin-auth-context";
 import {
   getAdminStats,
   fetchModulesPublic,
-  fetchQuizzesPublic,
   mockGetAdminStats,
   mockFetchModulesPublic,
-  mockFetchQuizzesPublic,
 } from "./admin-api";
 const API_URL = import.meta.env.VITE_API_URL || '/api';
 
@@ -165,19 +163,18 @@ export default function AdminDashboard() {
       try {
         const statsCaller = USE_MOCK ? mockGetAdminStats : getAdminStats;
         const modulesCaller = USE_MOCK ? mockFetchModulesPublic : fetchModulesPublic;
-        const quizzesCaller = USE_MOCK ? mockFetchQuizzesPublic : fetchQuizzesPublic;
 
-        const [statsData, modulesData, quizzesData] = await Promise.all([
+        const [statsData, modulesData] = await Promise.all([
           statsCaller().catch(() => ({ totalUsers: "—" })),
           modulesCaller().catch(() => []),
-          quizzesCaller().catch(() => []),
         ]);
 
         if (active) {
           setStats({
             totalUsers: statsData?.totalUsers !== undefined ? statsData.totalUsers : "—",
             totalModules: Array.isArray(modulesData) ? modulesData.length : "—",
-            activeQuizzes: Array.isArray(quizzesData) ? quizzesData.length : "—",
+            // Use activeQuizzes from admin stats — it filters out quizzes from deleted modules
+            activeQuizzes: statsData?.activeQuizzes !== undefined ? statsData.activeQuizzes : "—",
           });
         }
       } catch (err) {
@@ -339,7 +336,7 @@ export default function AdminDashboard() {
           {[
             { label: "Total Users", value: stats.totalUsers, note: "from /api/admin/stats" },
             { label: "Total Modules", value: stats.totalModules, note: "from /api/modules" },
-            { label: "Active Quizzes", value: stats.activeQuizzes, note: "from /api/quizzes" },
+            { label: "Active Quizzes", value: stats.activeQuizzes, note: "from /api/admin/stats" },
           ].map((stat) => (
             <div key={stat.label} className="px-5 py-4 text-center">
               <p className="text-xl font-bold text-white">{stat.value}</p>
