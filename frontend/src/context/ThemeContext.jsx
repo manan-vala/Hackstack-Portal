@@ -1,41 +1,31 @@
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo } from "react";
 
-const THEME_STORAGE_KEY = "hackstack-theme";
 const ThemeContext = createContext(null);
 
-function applyTheme(theme) {
+// Brand palette is always light — no dark mode.
+function applyTheme() {
   if (typeof document === "undefined") return;
-
   const root = document.documentElement;
-  root.dataset.theme = theme;
-  root.classList.toggle("dark", theme === "dark");
-  root.style.colorScheme = theme;
-}
-
-function getInitialTheme() {
-  if (typeof window === "undefined") return "light";
-  return window.localStorage.getItem(THEME_STORAGE_KEY) || "light";
+  root.dataset.theme = "light";
+  root.classList.remove("dark");
+  root.style.colorScheme = "light";
 }
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(getInitialTheme);
-
   useEffect(() => {
-    applyTheme(theme);
-    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-  }, [theme]);
+    applyTheme();
+    // Clear any previously stored dark preference
+    window.localStorage.removeItem("hackstack-theme");
+  }, []);
 
   const value = useMemo(
     () => ({
-      theme,
-      isDark: theme === "dark",
-      setTheme,
-      toggleTheme: () =>
-        setTheme((currentTheme) =>
-          currentTheme === "light" ? "dark" : "light"
-        ),
+      theme: "light",
+      isDark: false,
+      setTheme: () => {},
+      toggleTheme: () => {},
     }),
-    [theme]
+    []
   );
 
   return (

@@ -28,11 +28,11 @@ export function DashboardStats({ summary }) {
         detail={`${dayPercent}% of tracked days complete`}
         progress={dayPercent}
       />
+      {/* Quiz score: raw points — no progress bar, there's no meaningful upper bound */}
       <StatCard
         label="Quiz score"
         value={summary.totalQuizScore}
         detail="Points earned across your submitted quizzes"
-        progress={Math.min(summary.totalQuizScore, 100)}
       />
       <StatCard
         label="Module completion"
@@ -45,14 +45,17 @@ export function DashboardStats({ summary }) {
 }
 
 function StatCard({ label, value, detail, progress }) {
+  const showProgress = progress !== undefined && progress !== null;
   return (
     <article className="dashboard-stat-card">
       <span className="font-outfit">{label}</span>
       <strong>{value}</strong>
       <p>{detail}</p>
-      <div className="dashboard-stat-progress">
-        <div style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
-      </div>
+      {showProgress && (
+        <div className="dashboard-stat-progress">
+          <div style={{ width: `${Math.min(100, Math.max(0, progress))}%` }} />
+        </div>
+      )}
     </article>
   );
 }

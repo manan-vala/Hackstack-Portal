@@ -1,13 +1,10 @@
 import LayoutDashboard from "lucide-react/dist/esm/icons/layout-dashboard";
 import LibraryBig from "lucide-react/dist/esm/icons/library-big";
 import Trophy from "lucide-react/dist/esm/icons/trophy";
-import MoonStar from "lucide-react/dist/esm/icons/moon-star";
-import SunMedium from "lucide-react/dist/esm/icons/sun-medium";
 import LogOut from "lucide-react/dist/esm/icons/log-out";
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { useTheme } from "../context/ThemeContext";
 import { ProfileModal } from "./ProfileModal";
 import "./applayout.css";
 
@@ -70,7 +67,6 @@ function getPageMeta(pathname) {
 
 export function AppLayout({ children }) {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const pageMeta = getPageMeta(location.pathname);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -132,20 +128,6 @@ export function AppLayout({ children }) {
           </div>
 
           <div className="portal-topbar-actions">
-            <button
-              type="button"
-              className="portal-theme-button"
-              onClick={toggleTheme}
-              aria-label={`Switch to ${theme === "light" ? "dark" : "light"} mode`}
-            >
-              {theme === "light" ? (
-                <MoonStar size={16} />
-              ) : (
-                <SunMedium size={16} />
-              )}
-              <span>{theme === "light" ? "Dark mode" : "Light mode"}</span>
-            </button>
-
             <button
               type="button"
               className="portal-logout-button"
