@@ -27,7 +27,11 @@ router.get('/stats', adminAuth, async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
     const totalModules = await Module.countDocuments();
-    const activeQuizzes = await Quiz.countDocuments();
+
+    // Only count quizzes whose parent module still exists (exclude orphans from deleted modules)
+    const existingModuleIds = await Module.distinct('_id');
+    const activeQuizzes = await Quiz.countDocuments({ moduleId: { $in: existingModuleIds } });
+
     res.json({
       totalUsers,
       totalModules,
