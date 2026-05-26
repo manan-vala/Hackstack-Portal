@@ -29,6 +29,7 @@ import AdminLeaderboard from "../adminportal/leaderboard";
 import AdminUsers from "../adminportal/admin-users";
 import AdminNotifications from "../adminportal/admin-notifications";
 import AdminProtectedRoute from "../adminportal/admin-protected-route";
+import { AdminAuthProvider } from "../adminportal/admin-auth-context";
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -68,6 +69,79 @@ const ProtectedApp = ({ children }) => (
     </ModulesProvider>
   </ProtectedRoute>
 );
+
+const AdminApp = () => (
+                <AdminAuthProvider>
+                  <Routes>
+                    <Route path="login" element={<AdminLogin />} />
+
+                    <Route
+                      path="dashboard"
+                      element={
+                        <AdminProtectedRoute>
+                          <AdminDashboard />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                  <Route
+                      path="modules/create"
+                      element={
+                        <AdminProtectedRoute>
+                          <CreateModule />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="modules/edit"
+                      element={
+                        <AdminProtectedRoute>
+                          <EditModule />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="modules/edit/:id"
+                      element={
+                        <AdminProtectedRoute>
+                          <EditModule />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="modules/delete"
+                      element={
+                        <AdminProtectedRoute>
+                          <DeleteModule />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="leaderboard"
+                      element={
+                        <AdminProtectedRoute>
+                          <AdminLeaderboard />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="users"
+                      element={
+                        <AdminProtectedRoute>
+                          <AdminUsers />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                    <Route
+                      path="notifications"
+                      element={
+                        <AdminProtectedRoute>
+                          <AdminNotifications />
+                        </AdminProtectedRoute>
+                      }
+                    />
+                  </Routes>
+                </AdminAuthProvider>
+)
 
 const App = () => {
   return (
@@ -112,7 +186,12 @@ const App = () => {
                 </ProtectedApp>
               }
             />
-
+            <Route
+              path="/admin/*"
+              element={
+                <AdminApp/>
+              }
+            />
             <Route path="*" element={<Navigate to="/dashboard" replace />} />
           </Routes>
         </Router>
@@ -121,87 +200,6 @@ const App = () => {
   );
 };
 
+
+
 export default App;
-
-// ── Admin application ─────────────────────────────────────────────────────────
-// Admin standalone application
-// Access at /admin.html in production or admin routes when served separately
-export function AdminApp() {
-  return (
-    <BrowserRouter basename="/hackstack">
-      <Routes>
-        {/* ── Admin routes ────────────────────────────────────────────── */}
-        <Route path="/" element={<Navigate to="/admin/login" replace />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminDashboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/create"
-          element={
-            <AdminProtectedRoute>
-              <CreateModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/edit"
-          element={
-            <AdminProtectedRoute>
-              <EditModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/edit/:id"
-          element={
-            <AdminProtectedRoute>
-              <EditModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/delete"
-          element={
-            <AdminProtectedRoute>
-              <DeleteModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/leaderboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminLeaderboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminProtectedRoute>
-              <AdminUsers />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/notifications"
-          element={
-            <AdminProtectedRoute>
-              <AdminNotifications />
-            </AdminProtectedRoute>
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/admin/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
