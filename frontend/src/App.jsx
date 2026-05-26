@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import {
-  BrowserRouter,
   BrowserRouter as Router,
   Routes,
   Route,
@@ -8,6 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 import { AuthProvider, useAuth } from "./context/AuthContext";
+import { AdminAuthProvider } from "../adminportal/admin-auth-context";
 import { ModulesProvider } from "./context/ModulesContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AppLayout } from "./components/AppLayout";
@@ -73,135 +73,124 @@ const App = () => {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <Router basename="/hackstack">
-          <Routes>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/auth-callback" element={<AuthCallback />} />
-            <Route path="/onboarding" element={<Onboarding />} />
+        <AdminAuthProvider>
+          <Router basename="/hackstack">
+            <Routes>
+              {/* ── User routes ─────────────────────────────────────────── */}
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/auth-callback" element={<AuthCallback />} />
+              <Route path="/onboarding" element={<Onboarding />} />
 
-            <Route
-              path="/dashboard"
-              element={
-                <ProtectedApp>
-                  <Dashboard />
-                </ProtectedApp>
-              }
-            />
-            <Route
-              path="/modules"
-              element={
-                <ProtectedApp>
-                  <ModuleCatalog />
-                </ProtectedApp>
-              }
-            />
-            <Route
-              path="/modules/:slug"
-              element={
-                <ProtectedApp>
-                  <ModuleDetail />
-                </ProtectedApp>
-              }
-            />
-            <Route
-              path="/leaderboard"
-              element={
-                <ProtectedApp>
-                  <Leaderboard />
-                </ProtectedApp>
-              }
-            />
+              <Route
+                path="/dashboard"
+                element={
+                  <ProtectedApp>
+                    <Dashboard />
+                  </ProtectedApp>
+                }
+              />
+              <Route
+                path="/modules"
+                element={
+                  <ProtectedApp>
+                    <ModuleCatalog />
+                  </ProtectedApp>
+                }
+              />
+              <Route
+                path="/modules/:slug"
+                element={
+                  <ProtectedApp>
+                    <ModuleDetail />
+                  </ProtectedApp>
+                }
+              />
+              <Route
+                path="/leaderboard"
+                element={
+                  <ProtectedApp>
+                    <Leaderboard />
+                  </ProtectedApp>
+                }
+              />
 
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </Router>
+              {/* ── Admin routes ────────────────────────────────────────── */}
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              <Route
+                path="/admin/dashboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminDashboard />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/create"
+                element={
+                  <AdminProtectedRoute>
+                    <CreateModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/edit"
+                element={
+                  <AdminProtectedRoute>
+                    <EditModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/edit/:id"
+                element={
+                  <AdminProtectedRoute>
+                    <EditModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/modules/delete"
+                element={
+                  <AdminProtectedRoute>
+                    <DeleteModule />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/leaderboard"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminLeaderboard />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminUsers />
+                  </AdminProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/notifications"
+                element={
+                  <AdminProtectedRoute>
+                    <AdminNotifications />
+                  </AdminProtectedRoute>
+                }
+              />
+
+              {/* Fallback */}
+              <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            </Routes>
+          </Router>
+        </AdminAuthProvider>
       </AuthProvider>
     </ThemeProvider>
   );
 };
 
 export default App;
-
-// ── Admin application ─────────────────────────────────────────────────────────
-// Admin standalone application
-// Access at /admin.html in production or admin routes when served separately
-export function AdminApp() {
-  return (
-    <BrowserRouter basename="/hackstack">
-      <Routes>
-        {/* ── Admin routes ────────────────────────────────────────────── */}
-        <Route path="/" element={<Navigate to="/admin/login" replace />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-
-        <Route
-          path="/admin/dashboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminDashboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/create"
-          element={
-            <AdminProtectedRoute>
-              <CreateModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/edit"
-          element={
-            <AdminProtectedRoute>
-              <EditModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/edit/:id"
-          element={
-            <AdminProtectedRoute>
-              <EditModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/modules/delete"
-          element={
-            <AdminProtectedRoute>
-              <DeleteModule />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/leaderboard"
-          element={
-            <AdminProtectedRoute>
-              <AdminLeaderboard />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/users"
-          element={
-            <AdminProtectedRoute>
-              <AdminUsers />
-            </AdminProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/notifications"
-          element={
-            <AdminProtectedRoute>
-              <AdminNotifications />
-            </AdminProtectedRoute>
-          }
-        />
-
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/admin/login" replace />} />
-      </Routes>
-    </BrowserRouter>
-  );
-}
