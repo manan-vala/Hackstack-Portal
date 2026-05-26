@@ -11,23 +11,22 @@ function Dashboard() {
   const [dashboard, setDashboard] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [dismissedIds, setDismissedIds] = useState(() => {
-    try {
-      const saved = localStorage.getItem("dismissed_notifications");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  // Dismissed IDs are kept in memory only — they reset on reload so
+  // any notification still active on the server reappears automatically.
+  // Notifications the admin has removed won't come back (API won't return them).
+  const [dismissedIds, setDismissedIds] = useState([]);
+
+  // One-time cleanup: remove the legacy key that permanently hid notifications.
+  useEffect(() => {
+    localStorage.removeItem("dismissed_notifications");
+  }, []);
 
   const notifications = (dashboard?.notifications || []).filter(
     (n) => !dismissedIds.includes(n._id)
   );
 
   const handleDismissNotification = (id) => {
-    const nextDismissed = [...dismissedIds, id];
-    setDismissedIds(nextDismissed);
-    localStorage.setItem("dismissed_notifications", JSON.stringify(nextDismissed));
+    setDismissedIds((prev) => [...prev, id]);
   };
 
   useEffect(() => {
