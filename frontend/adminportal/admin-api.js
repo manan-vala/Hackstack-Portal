@@ -23,7 +23,10 @@ export async function adminLogin({ username, password }) {
   const data = await res.json();
 
   if (!res.ok) {
-    throw new Error(data.message || "Login failed");
+    const err = new Error(data.message || "Login failed");
+    err.forbidden = !!data.forbidden;
+    err.loginRequired = !!data.loginRequired;
+    throw err;
   }
 
   return data; // { token, user }

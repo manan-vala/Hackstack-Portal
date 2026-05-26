@@ -91,6 +91,20 @@ export default function AdminLogin() {
       login(user, token);
       navigate("/admin/dashboard", { replace: true });
     } catch (err) {
+      // If the backend says the Google account isn't whitelisted → go to user login
+      if (err.forbidden) {
+        setError("Access denied. Your Google account is not on the admin whitelist.");
+        setTimeout(() => {
+          window.location.assign("/hackstack/login");
+        }, 2500);
+        return;
+      }
+      // No Google session yet → trigger OAuth then retry
+      if (err.loginRequired) {
+        localStorage.setItem("admin_login_redirect", "true");
+        window.location.assign("/hackstack/api/auth/google");
+        return;
+      }
       setError(err.message || "Something went wrong.");
     } finally {
       setLoading(false);

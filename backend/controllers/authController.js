@@ -204,7 +204,7 @@ exports.logout = async (req, res) => {
   res.json({ message: 'Logged out successfully.' });
 };
 
-exports.adminLogin = (req, res) => {
+exports.adminLogin = async (req, res) => {
   const { username, password } = req.body || {};
 
   if (!username || !password) {
@@ -215,16 +215,80 @@ exports.adminLogin = (req, res) => {
     return res.status(401).json({ message: 'Invalid admin credentials.' });
   }
 
-  const token = jwt.sign(
-    { isAdmin: true, username, canDelete: true },
-    process.env.JWT_SECRET,
-    { expiresIn: '30d' },
-  );
+  // ── Whitelist check ──────────────────────────────────────────────────────
+  // Even with correct credentials, the requester's Google account must be on
+  // the AdminWhitelist. We identify them via the existing session cookie.
+  try {
+    const cookieToken = req.cookies?.token;
+    if (!cookieToken) {
+      return res.status(403).json({
+        message: 'No Google session found. Please sign in with Google first.',
+        forbidden: true,
+        loginRequired: true,
+      });
+    }
 
-  return res.json({
-    token,
-    user: { username, isAdmin: true, canDelete: true },
-  });
+    let decoded;
+    try {
+      decoded = jwt.verify(cookieToken, process.env.JWT_SECRET);
+    } catch (_) {
+      return res.status(403).json({
+        message: 'Invalid session. Please sign in with Google again.',
+        forbidden: true,
+        loginRequired: true,
+      });
+    }
+
+    const userId = decoded.id || decoded._id;
+    const user = userId ? await User.findById(userId).select('email googleId') : null;
+
+    if (!user) {
+      return res.status(403).json({
+        message: 'Could not verify your Google account.',
+        forbidden: true,
+        loginRequired: true,
+      });
+    }
+
+    const AdminWhitelist = require('../models/AdminWhitelist');
+
+    // Check DB whitelist
+    const whitelistRecord = await AdminWhitelist.findOne({
+      email: user.email.toLowerCase(),
+    });
+
+    // Also honour env-var overrides (same logic as /admin-check)
+    const allowedEmails = (process.env.ALLOWED_ADMIN_GOOGLE_EMAILS || '')
+      .toLowerCase().split(',').map(s => s.trim()).filter(Boolean);
+    const allowedIds = (process.env.ALLOWED_ADMIN_GOOGLE_IDS || '')
+      .split(',').map(s => s.trim()).filter(Boolean);
+
+    const isEmailAllowed = user.email && allowedEmails.includes(user.email.toLowerCase());
+    const isIdAllowed = user.googleId && allowedIds.includes(user.googleId.toString());
+
+    if (!whitelistRecord && !isEmailAllowed && !isIdAllowed) {
+      return res.status(403).json({
+        message: 'Your Google account is not authorised to access the admin portal.',
+        forbidden: true,
+      });
+    }
+
+    const canDelete = whitelistRecord ? !!whitelistRecord.canDelete : false;
+
+    const token = jwt.sign(
+      { isAdmin: true, username, canDelete },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' },
+    );
+
+    return res.json({
+      token,
+      user: { username, isAdmin: true, canDelete },
+    });
+  } catch (error) {
+    console.error('adminLogin whitelist check error:', error);
+    return res.status(500).json({ message: 'Internal server error during admin login.' });
+  }
 };
 
 exports.getColleges = async (req, res) => {
