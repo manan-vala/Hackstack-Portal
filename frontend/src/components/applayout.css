@@ -363,3 +363,45 @@
     flex: 1 1 auto;
   }
 }
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+.portal-footer {
+  margin-top: 48px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
+
+.portal-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.portal-footer-logo {
+  display: flex;
+  align-items: center;
+  opacity: 0.55;
+}
+
+.portal-footer-logo img {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+}
+
+.portal-footer-inner p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+  font-family: var(--font-body);
+  letter-spacing: 0.01em;
+}
+
+.portal-footer-inner strong {
+  font-weight: 700;
+  color: var(--color-primary);
+  font-family: var(--font-display);
+}
+

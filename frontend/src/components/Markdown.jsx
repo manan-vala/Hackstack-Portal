@@ -1,39 +1,16 @@
+import "./markdown.css";
+
 function Markdown({ source, tone = "light" }) {
   const lines = (source ?? "").split("\n");
   const out = [];
-  const palette =
-    tone === "dark"
-      ? {
-          headingStrong: "!text-slate-50 font-bold",
-          headingSoft: "!text-slate-100 font-semibold",
-          body: "!text-slate-300",
-          inlineCode:
-            "bg-white/10 border border-white/10 px-1.5 py-0.5 rounded text-sm !text-slate-100",
-          blockquote: "border-l-2 border-cyan-400 pl-3 my-3 !text-slate-300 italic",
-          codeBlock:
-            "bg-slate-950 border border-white/10 rounded-lg p-4 overflow-x-auto my-4 text-sm !text-slate-100",
-          strong: "!text-white font-semibold",
-          list: "ml-5 list-disc !text-slate-300 leading-7",
-        }
-      : {
-          headingStrong: "text-slate-900",
-          headingSoft: "text-slate-800",
-          body: "text-slate-700",
-          inlineCode:
-            "bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded text-sm text-slate-700",
-          blockquote: "border-l-2 border-indigo-400 pl-3 my-2 text-slate-600 italic",
-          codeBlock:
-            "bg-slate-100 border border-slate-200 rounded-lg p-4 overflow-x-auto my-3 text-sm text-slate-800",
-          strong: "text-slate-900",
-          list: "ml-5 list-disc text-slate-700",
-        };
+  const toneClass = tone === "dark" ? "md-dark" : "md-light";
 
   let inCode = false;
   let codeBuf = [];
 
   const flushCode = (key) => {
     out.push(
-      <pre key={key} className={palette.codeBlock}>
+      <pre key={key} className="md-code-block">
         <code>{codeBuf.join("\n")}</code>
       </pre>
     );
@@ -53,13 +30,13 @@ function Markdown({ source, tone = "light" }) {
       const token = match[0];
       if (token.startsWith("**")) {
         parts.push(
-          <strong key={index += 1} className={palette.strong}>
+          <strong key={index += 1} className="md-strong">
             {token.slice(2, -2)}
           </strong>
         );
       } else {
         parts.push(
-          <code key={index += 1} className={palette.inlineCode}>
+          <code key={index += 1} className="md-inline-code">
             {token.slice(1, -1)}
           </code>
         );
@@ -91,39 +68,39 @@ function Markdown({ source, tone = "light" }) {
 
     if (line.startsWith("### ")) {
       out.push(
-        <h3 key={idx} className={`${palette.headingSoft} mt-5 mb-2 text-lg`}>
+        <h3 key={idx} className="md-h3">
           {line.slice(4)}
         </h3>
       );
     } else if (line.startsWith("## ")) {
       out.push(
-        <h2 key={idx} className={`${palette.headingStrong} tracking-tight mt-6 mb-3 text-xl`}>
+        <h2 key={idx} className="md-h2">
           {line.slice(3)}
         </h2>
       );
     } else if (line.startsWith("# ")) {
       out.push(
-        <h1 key={idx} className={`${palette.headingStrong} tracking-tight mt-4 mb-3 text-2xl`}>
+        <h1 key={idx} className="md-h1">
           {line.slice(2)}
         </h1>
       );
     } else if (line.startsWith("> ")) {
       out.push(
-        <blockquote key={idx} className={palette.blockquote}>
+        <blockquote key={idx} className="md-blockquote">
           {inline(line.slice(2))}
         </blockquote>
       );
     } else if (line.startsWith("- ")) {
       out.push(
-        <li key={idx} className={palette.list}>
+        <li key={idx} className="md-list-item">
           {inline(line.slice(2))}
         </li>
       );
     } else if (line.trim() === "") {
-      out.push(<div key={idx} className="h-2" />);
+      out.push(<div key={idx} className="md-spacer" />);
     } else {
       out.push(
-        <p key={idx} className={`${palette.body} leading-7`}>
+        <p key={idx} className="md-body">
           {inline(line)}
         </p>
       );
@@ -132,7 +109,8 @@ function Markdown({ source, tone = "light" }) {
 
   if (inCode) flushCode("code-end");
 
-  return <div className="space-y-1">{out}</div>;
+  return <div className={`md-root ${toneClass}`}>{out}</div>;
 }
 
 export { Markdown };
+
