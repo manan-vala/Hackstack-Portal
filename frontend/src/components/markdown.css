@@ -1,0 +1,141 @@
+/* ── Markdown Renderer — Hackstack Brand ─────────────────────────────────── */
+
+.md-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* ── Headings ─────────────────────────────────────────────────────────────── */
+.md-h1,
+.md-h2,
+.md-h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.md-h1 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.md-h2 {
+  font-size: 1.25rem;
+  margin-top: 1.5rem;
+  margin-bottom: 0.65rem;
+}
+
+.md-h3 {
+  font-size: 1.05rem;
+  margin-top: 1.15rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Body & Lists ─────────────────────────────────────────────────────────── */
+.md-body {
+  margin: 0;
+  line-height: 1.75;
+}
+
+.md-list-item {
+  margin-left: 1.25rem;
+  list-style: disc;
+  line-height: 1.75;
+}
+
+.md-spacer {
+  height: 0.5rem;
+}
+
+/* ── Inline Elements ──────────────────────────────────────────────────────── */
+.md-strong {
+  font-weight: 700;
+}
+
+.md-inline-code {
+  display: inline;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  padding: 0.15rem 0.45rem;
+  font-size: 0.85em;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+.md-blockquote {
+  border-left: 3px solid var(--color-primary);
+  padding-left: 0.9rem;
+  margin: 0.65rem 0;
+  font-style: italic;
+}
+
+/* ── Code Block ───────────────────────────────────────────────────────────── */
+.md-code-block {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  padding: 1rem;
+  overflow-x: auto;
+  margin: 0.75rem 0;
+  font-size: 0.875rem;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  line-height: 1.6;
+}
+
+/* ── Light Tone ───────────────────────────────────────────────────────────── */
+.md-light .md-h1,
+.md-light .md-h2,
+.md-light .md-h3,
+.md-light .md-strong {
+  color: var(--text-strong);
+}
+
+.md-light .md-body,
+.md-light .md-list-item {
+  color: var(--text);
+}
+
+.md-light .md-blockquote {
+  color: var(--muted);
+}
+
+.md-light .md-inline-code {
+  background: var(--surface-subtle);
+  color: var(--text-strong);
+}
+
+.md-light .md-code-block {
+  background: var(--surface-subtle);
+  color: var(--text-strong);
+}
+
+/* ── Dark Tone (inside the DayModal header / banners) ─────────────────────── */
+.md-dark .md-h1,
+.md-dark .md-h2,
+.md-dark .md-h3,
+.md-dark .md-strong {
+  color: #ffffff;
+}
+
+.md-dark .md-body,
+.md-dark .md-list-item,
+.md-dark .md-blockquote {
+  color: rgba(255, 247, 235, 0.82);
+}
+
+.md-dark .md-blockquote {
+  border-left-color: var(--color-accent-2);
+}
+
+.md-dark .md-inline-code {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 247, 235, 0.90);
+}
+
+.md-dark .md-code-block {
+  background: rgba(0, 0, 0, 0.30);
+  border-color: rgba(255, 255, 255, 0.10);
+  color: rgba(255, 247, 235, 0.90);
+}

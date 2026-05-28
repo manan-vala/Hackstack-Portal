@@ -239,17 +239,11 @@ function ModuleCatalog() {
               <span className="modules-summary-orb is-second" />
               <span className="modules-summary-orb is-third" />
               <div>
-                <strong>Complete all stacks to earn your Hackstack certificate</strong>
+                <strong>Complete any module to earn your Hackstack certificate</strong>
                 <p>
                   {learningSummary.registeredCount} of {learningSummary.totalStacks}{" "}
                   stacks enrolled · {learningSummary.completedDays} days complete
                 </p>
-              </div>
-            </div>
-            <div className="modules-summary-meter">
-              <span>{learningSummary.completionPercent}%</span>
-              <div>
-                <div style={{ width: `${learningSummary.completionPercent}%` }} />
               </div>
             </div>
           </section>

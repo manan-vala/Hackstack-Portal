@@ -164,6 +164,24 @@ export function AppLayout({ children }) {
         </header>
 
         <main className="portal-main">{children}</main>
+
+        <footer className="portal-footer">
+          <div className="portal-footer-inner">
+            <span className="portal-footer-logo">
+              <img
+                src={`${import.meta.env.BASE_URL}swc-logo.webp`}
+                alt="SWC logo"
+                width={16}
+                height={16}
+              />
+            </span>
+            <p>
+              Developed by{" "}
+              <strong>Student Web Committee</strong>
+              {" "}2026–2027
+            </p>
+          </div>
+        </footer>
       </div>
 
       <ProfileModal isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} user={user} />
