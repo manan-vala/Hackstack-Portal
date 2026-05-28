@@ -1,0 +1,370 @@
+/* ── TimelineCalendar ─────────────────────────────────────────────────────── */
+
+/* ── Section wrapper ────────────────────────────────────────────────────── */
+.tl-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Section header ─────────────────────────────────────────────────────── */
+.tl-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.tl-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.tl-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.38rem 0.8rem;
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  font-family: var(--font-body);
+  width: fit-content;
+}
+
+.tl-title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  letter-spacing: -0.04em;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  line-height: 1.1;
+}
+
+.tl-subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.65;
+  max-width: 38rem;
+}
+
+.tl-header-right {
+  flex-shrink: 0;
+}
+
+.tl-tagline {
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--color-primary);
+  background: var(--accent-soft);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(48, 62, 210, 0.18);
+}
+
+/* ── Main card ──────────────────────────────────────────────────────────── */
+.tl-card {
+  --tl-padding: 1.5rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  position: relative;
+  /* Rich blue gradient header matching the poster */
+  background:
+    linear-gradient(180deg,
+      rgba(48, 62, 210, 0.06) 0%,
+      transparent 20%
+    ),
+    var(--surface);
+}
+
+/* ── Axis shared layout ─────────────────────────────────────────────────── */
+.tl-axis {
+  display: grid;
+  grid-template-columns: 0 1fr;   /* no label column for axis rows */
+  position: relative;
+}
+
+.tl-axis-label-col,
+.tl-row-label-col {
+  width: 0;
+  flex-shrink: 0;
+}
+
+.tl-axis-track {
+  position: relative;
+  min-height: 2rem;
+}
+
+/* Month row */
+.tl-axis--months {
+  padding: 0.85rem var(--tl-padding) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.tl-axis--months .tl-axis-track {
+  min-height: 1.6rem;
+}
+
+.tl-month-marker {
+  position: absolute;
+  transform: translateX(0);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  font-family: var(--font-body);
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Date row */
+.tl-axis--dates {
+  padding: 0.5rem var(--tl-padding) 0.5rem;
+  border-bottom: 2px solid var(--line-strong);
+  background: rgba(48, 62, 210, 0.03);
+}
+
+.tl-date-marker {
+  position: absolute;
+  transform: translateX(-50%);
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
+}
+
+.tl-today-label {
+  position: absolute;
+  top: 0;
+  transform: translateX(-50%);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #E5484D;
+  font-family: var(--font-body);
+  white-space: nowrap;
+  background: rgba(229, 72, 77, 0.10);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+}
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+.tl-divider {
+  height: 1px;
+  background: var(--line);
+}
+
+/* ── Grid lines layer (behind rows only) ───────────────────────────────── */
+.tl-rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 0.9rem var(--tl-padding) 1.25rem;
+  gap: 0.6rem;
+}
+
+/* Background shading for July section (distinct warm/amber tint) */
+.tl-july-bg-shading {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: rgba(238, 175, 56, 0.07); /* Clearly different background color for July */
+  border-left: 2px dotted var(--color-primary); /* Distinct dotted boundary line */
+  pointer-events: none;
+  z-index: 0;
+  transition: background-color 200ms ease;
+}
+
+.tl-card:hover .tl-july-bg-shading {
+  background: rgba(238, 175, 56, 0.09);
+}
+
+.tl-grid-lines {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--tl-padding);
+  right: var(--tl-padding);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.tl-grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+  transform: translateX(-50%);
+  transition: all 180ms ease;
+  z-index: 0;
+}
+
+/* Dotted month separator line for July 1st */
+.tl-grid-line--july-start {
+  width: 0 !important;
+  border-left: 2px dotted var(--color-primary) !important;
+  opacity: 0.8;
+  z-index: 1;
+}
+
+/* Highlighted start and end lines drawn OVER the bars on hover */
+.tl-grid-line--highlighted {
+  width: 1px !important; /* Elegant thin line */
+  background: var(--color-primary) !important;
+  box-shadow: 0 0 6px rgba(48, 62, 210, 0.35); /* Softer glow */
+  opacity: 0.65 !important; /* Semi-transparent so it remains light and non-intrusive */
+  z-index: 10 !important; /* Overlay bars */
+}
+
+.tl-today-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: #E5484D;
+  transform: translateX(-50%);
+  z-index: 10;
+  box-shadow: 0 0 8px rgba(229, 72, 77, 0.4);
+}
+
+/* ── Date Marker Specific Styles ────────────────────────────────────────── */
+.tl-date-marker--july {
+  color: var(--color-primary) !important;
+  font-weight: 800 !important;
+  background: rgba(48, 62, 210, 0.08);
+  padding: 2px 7px;
+  border-radius: 4px;
+  border: 1px solid rgba(48, 62, 210, 0.15);
+  font-size: 0.72rem !important;
+}
+
+/* ── Rows ───────────────────────────────────────────────────────────────── */
+.tl-row {
+  display: grid;
+  grid-template-columns: 0 1fr;
+  align-items: center;
+  min-height: 2.6rem;
+  position: relative;
+}
+
+.tl-row-bar-area {
+  position: relative;
+  height: 2.6rem;
+}
+
+/* Subtle horizontal rule behind each bar */
+.tl-row-bar-area::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--line);
+  transform: translateY(-50%);
+}
+
+/* ── Bar ────────────────────────────────────────────────────────────────── */
+.tl-bar {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 2.25rem;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.9rem;
+  gap: 0.4rem;
+  cursor: pointer;
+  z-index: 2; /* Sit below highlighted grid lines but above standard grid lines */
+  transition:
+    transform 220ms cubic-bezier(0.175, 0.885, 0.32, 1.1),
+    box-shadow 220ms ease,
+    filter 180ms ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.tl-bar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.tl-bar--hovered {
+  transform: translateY(-50%) scale(1.015);
+  filter: brightness(1.05);
+  z-index: 5;
+}
+
+.tl-bar-label {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-strong); /* Dark indigo text for perfect contrast on light pastel bars */
+  font-family: var(--font-display);
+  letter-spacing: 0.01em;
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  flex-grow: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Footnote ───────────────────────────────────────────────────────────── */
+.tl-footnote {
+  margin: 0;
+  padding: 0 1.5rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .tl-card {
+    --tl-padding: 0.75rem;
+  }
+
+  .tl-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .tl-bar-label {
+    font-size: 0.7rem;
+  }
+
+  .tl-card {
+    overflow-x: auto;
+  }
+
+  .tl-rows {
+    min-width: 500px;
+  }
+
+  .tl-axis--months .tl-axis-track,
+  .tl-axis--dates .tl-axis-track {
+    min-width: 500px;
+  }
+}
