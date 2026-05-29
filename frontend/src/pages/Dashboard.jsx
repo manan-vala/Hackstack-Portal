@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { DashboardHero } from "../components/dashboard/DashboardHero";
 import { ModuleProgressCard } from "../components/dashboard/ModuleProgressCard";
 import { DashboardStats } from "../components/dashboard/DashboardStats";
+import { TimelineCalendar } from "../components/dashboard/TimelineCalendar";
 import { dashboardService } from "../services/dashboardService";
 
 function Dashboard() {
@@ -111,6 +112,8 @@ function Dashboard() {
       )}
 
       <DashboardStats summary={summary} />
+
+      <TimelineCalendar />
 
       <section id="dashboard-modules" className="dashboard-section">
         <div className="dashboard-section-header">
