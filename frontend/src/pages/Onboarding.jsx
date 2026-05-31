@@ -6,6 +6,72 @@ import './onboarding.css';
 
 const YEAR_OPTIONS = ['1st Year', '2nd Year', '3rd Year', '4th Year', '5th Year'];
 
+const COLLEGES_LIST = [
+  "Anna University (CEG)",
+  "BIT Mesra",
+  "BITS Goa",
+  "BITS Hyderabad",
+  "BITS Pilani",
+  "BITS Pilani (Main Campus)",
+  "BITS Pilani (Pilani Campus)",
+  "BITS Pilani Goa",
+  "BMSCE Bangalore",
+  "COEP Pune",
+  "DAIICT",
+  "DTU",
+  "DTU Delhi",
+  "ICT Mumbai",
+  "IIIT Allahabad",
+  "IIIT Bangalore",
+  "IIIT Delhi",
+  "IIIT Guwahati",
+  "IIIT Hyderabad",
+  "IIIT Lucknow",
+  "IIIT Pune",
+  "IIITDM Jabalpur",
+  "IIITDM Kancheepuram",
+  "IIT Bhubaneswar",
+  "IIT Bombay",
+  "IIT Delhi",
+  "IIT Gandhinagar",
+  "IIT Goa",
+  "IIT Hyderabad",
+  "IIT Indore",
+  "IIT Jodhpur",
+  "IIT Kanpur",
+  "IIT Kharagpur",
+  "IIT Mandi",
+  "IIT Patna",
+  "IIT Roorkee",
+  "Jadavpur University",
+  "LNMIIT Jaipur",
+  "MANIT Bhopal",
+  "MIT Manipal",
+  "MNIT Jaipur",
+  "MSRIT Bangalore",
+  "NIT Calicut",
+  "NIT Durgapur",
+  "NIT Jalandhar",
+  "NIT Rourkela",
+  "NIT Silchar",
+  "NITK Surathkal",
+  "NSUT",
+  "NSUT Delhi",
+  "PCCOE Pune",
+  "PEC Chandigarh",
+  "PES University",
+  "PICT Pune",
+  "RVCE",
+  "RVCE Bangalore",
+  "SPIT Mumbai",
+  "SRM IST",
+  "SVNIT Surat",
+  "Thapar Institute",
+  "VIT Vellore",
+  "VJTI Mumbai",
+  "VNIT Nagpur"
+];
+
 function debounce(fn, delay) {
   let timer;
   return (...args) => {
@@ -35,7 +101,6 @@ const Onboarding = () => {
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  const [collegesList, setCollegesList] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const collegeRef = useRef(null);
 
@@ -59,18 +124,7 @@ const Onboarding = () => {
     }
   }, [loading, user, navigate]);
 
-  // Fetch existing colleges list for suggestions
-  useEffect(() => {
-    async function fetchColleges() {
-      try {
-        const data = await authService.getColleges();
-        setCollegesList(data);
-      } catch (err) {
-        // Silent fail for suggestions
-      }
-    }
-    fetchColleges();
-  }, []);
+  // Removed fetchColleges to use hardcoded list
 
   // Handle click outside suggestions dropdown
   useEffect(() => {
@@ -88,13 +142,23 @@ const Onboarding = () => {
   // Filter college list based on user input
   const filteredColleges = useMemo(() => {
     const query = form.college.trim().toLowerCase();
+    let matches = [];
+    
     if (!query) {
-      return collegesList.slice(0, 6);
+      matches = COLLEGES_LIST.slice(0, 6);
+    } else {
+      matches = COLLEGES_LIST
+        .filter((c) => c.toLowerCase().includes(query) && c.toLowerCase() !== query)
+        .slice(0, 6);
     }
-    return collegesList
-      .filter((c) => c.toLowerCase().includes(query) && c.toLowerCase() !== query)
-      .slice(0, 6);
-  }, [form.college, collegesList]);
+
+    // Always add what the user typed as the bottom option if it's not empty
+    if (form.college.trim() && !matches.some((c) => c.toLowerCase() === query)) {
+      matches.push(form.college);
+    }
+    
+    return matches;
+  }, [form.college]);
 
   const handleSelectCollege = (collegeName) => {
     setForm((prev) => ({ ...prev, college: collegeName }));
@@ -280,9 +344,9 @@ const Onboarding = () => {
               />
               {showSuggestions && filteredColleges.length > 0 && (
                 <div className="onboarding-suggestions-dropdown">
-                  {filteredColleges.map((col) => (
+                  {filteredColleges.map((col, index) => (
                     <div
-                      key={col}
+                      key={`${col}-${index}`}
                       className="onboarding-suggestion-item"
                       onClick={() => handleSelectCollege(col)}
                     >
