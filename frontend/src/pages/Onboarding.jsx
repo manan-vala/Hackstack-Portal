@@ -208,8 +208,8 @@ const Onboarding = () => {
     if (!form.year) newErrors.year = 'Year is required';
     if (!form.rollNumber.trim()) {
       newErrors.rollNumber = 'Roll number is required';
-    } else if (!/^[0-9]{9,}$/.test(form.rollNumber.trim())) {
-      newErrors.rollNumber = 'Roll number must be at least 9 digits';
+    } else if (!/^[0-9]+$/.test(form.rollNumber.trim())) {
+      newErrors.rollNumber = 'Roll number must be numeric';
     }
     if (!form.programme) newErrors.programme = 'Programme is required';
     if (!form.countryCode.trim()) newErrors.countryCode = 'Country code is required';

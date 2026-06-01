@@ -41,9 +41,10 @@ export function ModulesProvider({ children }) {
         quizService.listQuizzes(),
       ]);
 
-      setModules(
-        moduleList.map((module, index) => normalizeModule(module, index)),
-      );
+      const normalized = moduleList.map((module, index) => normalizeModule(module, index));
+      // Sort by week ascending so Module 1 always appears first
+      normalized.sort((a, b) => (a.week ?? Infinity) - (b.week ?? Infinity));
+      setModules(normalized);
       setProgress(progressList);
       setQuizzes(quizList);
     } catch (err) {

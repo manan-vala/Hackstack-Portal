@@ -1,4 +1,5 @@
 const User = require('../models/User');
+const Module = require('../models/Module');
 const Progress = require('../models/Progress');
 const Quiz = require('../models/Quiz');
 const Notification = require('../models/Notification');
@@ -24,13 +25,20 @@ exports.getDashboard = async (req, res) => {
     const registeredModules = user.registeredModules || [];
     const moduleIds = registeredModules.map((moduleDoc) => moduleDoc._id);
 
-    const [progressRecords, quizzes, activeNotifications] = await Promise.all([
+    const [allModules, progressRecords, quizzes, activeNotifications] = await Promise.all([
+      // Fetch ALL modules in canonical order (same sort as module catalog)
+      Module.find({}, '_id week createdAt').sort({ week: 1, createdAt: 1 }).lean(),
       Progress.find({ userId: user._id }),
       moduleIds.length
         ? Quiz.find({ moduleId: { $in: moduleIds } })
         : Promise.resolve([]),
       Notification.find({ active: true }).sort({ createdAt: -1 })
     ]);
+
+    // Build a map of moduleId → canonical position (1-indexed), matching the catalog page order
+    const modulePositionMap = new Map(
+      allModules.map((m, index) => [m._id.toString(), index + 1])
+    );
 
     const progressByModule = new Map(
       progressRecords.map((record) => [record.moduleId.toString(), record])
@@ -51,7 +59,14 @@ exports.getDashboard = async (req, res) => {
     let completedModules = 0;
     let completionSum = 0;
 
-    const modules = registeredModules.map((moduleDoc) => {
+    // Sort registered modules by their canonical position in the full module list
+    const sortedModules = [...registeredModules].sort((a, b) => {
+      const posA = modulePositionMap.get(a._id.toString()) ?? Infinity;
+      const posB = modulePositionMap.get(b._id.toString()) ?? Infinity;
+      return posA - posB;
+    });
+
+    const modules = sortedModules.map((moduleDoc) => {
       const moduleId = moduleDoc._id.toString();
       const progress = progressByModule.get(moduleId);
       const moduleQuizzes = quizzesByModule.get(moduleId) || [];
@@ -124,6 +139,8 @@ exports.getDashboard = async (req, res) => {
         title: moduleDoc.title,
         description: moduleDoc.description,
         difficulty: moduleDoc.difficulty || 'Module',
+        // Use the canonical position from the full sorted module list (matches catalog page numbering)
+        week: modulePositionMap.get(moduleId) ?? null,
         totalDays: moduleTotalDays,
         completedDays: moduleCompletedDays,
         completionPercent,

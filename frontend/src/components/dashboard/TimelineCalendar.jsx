@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "./timeline.css";
 
 // ── Timeline data extracted from the Hackstack poster ─────────────────────────
@@ -18,20 +19,19 @@ const DATE_LABELS = [
   { label: "14", date: new Date(2025, 5, 14) },
   { label: "22", date: new Date(2025, 5, 22) },
   { label: "28", date: new Date(2025, 5, 28) },
-  { label: "01", date: new Date(2025, 6, 1)  }, // July Start Month transition
   { label: "05", date: new Date(2025, 6, 5)  },
   { label: "12", date: new Date(2025, 6, 12) },
 ];
 
 const TRACKS = [
-  { id: "html",    label: "HTML / CSS / JS", start: new Date(2025, 5, 1),  end: new Date(2025, 5, 14), color: "#E0E7FF" }, // Light Indigo
-  { id: "product", label: "Product Pro",     start: new Date(2025, 5, 1),  end: new Date(2025, 5, 22), color: "#E0F2FE" }, // Light Sky Blue
-  { id: "flutter", label: "Flutter",         start: new Date(2025, 5, 1),  end: new Date(2025, 5, 28), color: "#DBEAFE" }, // Light Blue
-  { id: "uiux",    label: "UI/UX",           start: new Date(2025, 5, 8),  end: new Date(2025, 5, 28), color: "#F3E8FF" }, // Light Purple
-  { id: "viscom",  label: "Vis-Com",         start: new Date(2025, 5, 14), end: new Date(2025, 5, 22), color: "#FAE8FF" }, // Light Fuchsia
-  { id: "reactjs", label: "React JS",        start: new Date(2025, 5, 14), end: new Date(2025, 5, 28), color: "#ECFDF5" }, // Light Emerald
-  { id: "nodejs",  label: "Node JS",         start: new Date(2025, 5, 22), end: new Date(2025, 6, 5),  color: "#FEF3C7" }, // Light Amber
-  { id: "django",  label: "Django",          start: new Date(2025, 5, 22), end: new Date(2025, 6, 12), color: "#FFEDD5" }, // Light Orange
+  { id: "html",    label: "HTML / CSS / JS", slug: "html-css-js",      start: new Date(2025, 5, 1),  end: new Date(2025, 5, 14), color: "#E0E7FF" }, // Light Indigo
+  { id: "product", label: "Product Pro",     slug: "product-pro",           start: new Date(2025, 5, 1),  end: new Date(2025, 5, 22), color: "#E0F2FE" }, // Light Sky Blue
+  { id: "flutter", label: "Flutter",         slug: "flutter",               start: new Date(2025, 5, 1),  end: new Date(2025, 5, 28), color: "#DBEAFE" }, // Light Blue
+  { id: "uiux",    label: "UI/UX",           slug: "ui-ux",                 start: new Date(2025, 5, 8),  end: new Date(2025, 5, 28), color: "#F3E8FF" }, // Light Purple
+  { id: "viscom",  label: "Vis-Com",         slug: "viscom",               start: new Date(2025, 5, 14), end: new Date(2025, 5, 22), color: "#FAE8FF" }, // Light Fuchsia
+  { id: "reactjs", label: "React JS",        slug: "react-js",              start: new Date(2025, 5, 14), end: new Date(2025, 5, 28), color: "#ECFDF5" }, // Light Emerald
+  { id: "nodejs",  label: "Node JS",         slug: "node-js",               start: new Date(2025, 5, 22), end: new Date(2025, 6, 5),  color: "#FEF3C7" }, // Light Amber
+  { id: "django",  label: "Django",          slug: "django",                start: new Date(2025, 5, 22), end: new Date(2025, 6, 12), color: "#FFEDD5" }, // Light Orange
 ];
 
 const TOTAL_MS = TIMELINE_END - TIMELINE_START;
@@ -51,6 +51,7 @@ export function TimelineCalendar() {
 
   const [hovered, setHovered] = useState(null);
   const barRefs = useRef({});
+  const navigate = useNavigate();
 
   // Details of hovered track
   const hoveredTrack = TRACKS.find((t) => t.id === hovered);
@@ -173,7 +174,10 @@ export function TimelineCalendar() {
                 <div className="tl-row-bar-area">
                   <div
                     ref={(el) => (barRefs.current[track.id] = el)}
-                    className={`tl-bar${isHovered ? " tl-bar--hovered" : ""}`}
+                    className={`tl-bar${isHovered ? " tl-bar--hovered" : ""}${track.slug ? " tl-bar--clickable" : ""}`}
+                    role={track.slug ? "button" : undefined}
+                    tabIndex={track.slug ? 0 : undefined}
+                    title={track.slug ? `Open ${track.label} module` : undefined}
                     style={{
                       left:            `${left}%`,
                       width:           `${width}%`,
@@ -182,9 +186,17 @@ export function TimelineCalendar() {
                       boxShadow:       isHovered
                         ? `0 6px 16px rgba(27, 39, 180, 0.15)`
                         : `0 2px 6px rgba(27, 39, 180, 0.05)`,
+                      cursor:          track.slug ? "pointer" : "default",
                     }}
                     onMouseEnter={() => setHovered(track.id)}
                     onMouseLeave={() => setHovered(null)}
+                    onClick={() => track.slug && navigate(`/modules/${track.slug}`)}
+                    onKeyDown={(e) => {
+                      if (track.slug && (e.key === "Enter" || e.key === " ")) {
+                        e.preventDefault();
+                        navigate(`/modules/${track.slug}`);
+                      }
+                    }}
                   >
                     <span className="tl-bar-label">
                       {track.label}
