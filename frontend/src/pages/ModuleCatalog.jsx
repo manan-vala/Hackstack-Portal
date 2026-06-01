@@ -168,8 +168,6 @@ function ModuleCatalog() {
                   </div>
 
                   <div className="module-card-body">
-                    <p>{module.description}</p>
-
                     <div className="module-chip-row">
                       <span>{module.dayCount} days</span>
                       <span>{quizzes.length} quiz questions</span>

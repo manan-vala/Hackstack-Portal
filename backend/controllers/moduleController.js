@@ -27,7 +27,7 @@ const serializeModule = (moduleDoc) => {
 
 exports.listModules = async (req, res) => {
   try {
-    const modules = await Module.find().sort({ createdAt: -1 });
+    const modules = await Module.find().sort({ week: 1, createdAt: 1 });
     res.json(modules.map(serializeModule));
   } catch (error) {
     res.status(500).json({ message: 'Failed to list modules.', error: error.message });

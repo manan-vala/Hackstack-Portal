@@ -9,6 +9,7 @@ export function ModuleProgressCard({ row, index = 0 }) {
     title,
     description,
     difficulty,
+    week,
     totalDays,
     completedDays,
     completionPercent,
@@ -37,10 +38,9 @@ export function ModuleProgressCard({ row, index = 0 }) {
       >
         <div>
           <span className="dashboard-module-label">
-            Module {index + 1} · {difficulty || "Guided track"}
+          Module {week ?? index + 1} · {difficulty || "Guided track"}
           </span>
           <h3>{title}</h3>
-          <p>{description}</p>
         </div>
         <div className="dashboard-module-badge">
           {completionPercent === 100 ? (

@@ -301,7 +301,7 @@
   display: none;
 }
 
-.module-outcomes[open] svg {
+.module-outcomes[open] summary svg {
   transform: rotate(180deg);
 }
 
