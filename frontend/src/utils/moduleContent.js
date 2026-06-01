@@ -3,6 +3,7 @@ function cleanLine(line = "") {
     .replace(/^>\s*/, "")
     .replace(/\*\*/g, "")
     .replace(/`/g, "")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
     .trim();
 }
 

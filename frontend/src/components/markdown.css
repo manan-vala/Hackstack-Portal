@@ -64,6 +64,11 @@
   font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
 }
 
+.md-link {
+  font-weight: 500;
+  transition: color 150ms ease;
+}
+
 .md-blockquote {
   border-left: 3px solid var(--color-primary);
   padding-left: 0.9rem;
@@ -110,6 +115,16 @@
   color: var(--text-strong);
 }
 
+.md-light .md-link {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-light .md-link:hover {
+  color: var(--color-secondary);
+}
+
 /* ── Dark Tone (inside the DayModal header / banners) ─────────────────────── */
 .md-dark .md-h1,
 .md-dark .md-h2,
@@ -138,4 +153,14 @@
   background: rgba(0, 0, 0, 0.30);
   border-color: rgba(255, 255, 255, 0.10);
   color: rgba(255, 247, 235, 0.90);
+}
+
+.md-dark .md-link {
+  color: var(--color-accent-1);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.md-dark .md-link:hover {
+  color: var(--color-accent-2);
 }

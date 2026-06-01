@@ -19,7 +19,7 @@ function Markdown({ source, tone = "light" }) {
 
   const inline = (text) => {
     const parts = [];
-    const regex = /(\*\*[^*]+\*\*|`[^`]+`)/g;
+    const regex = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
     let last = 0;
     let match;
     let index = 0;
@@ -34,11 +34,26 @@ function Markdown({ source, tone = "light" }) {
             {token.slice(2, -2)}
           </strong>
         );
-      } else {
+      } else if (token.startsWith("`")) {
         parts.push(
           <code key={index += 1} className="md-inline-code">
             {token.slice(1, -1)}
           </code>
+        );
+      } else if (token.startsWith("[")) {
+        const closeBracketIdx = token.indexOf("]");
+        const label = token.slice(1, closeBracketIdx);
+        const url = token.slice(closeBracketIdx + 2, -1);
+        parts.push(
+          <a
+            key={index += 1}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="md-link"
+          >
+            {label}
+          </a>
         );
       }
 
