@@ -7,17 +7,7 @@ const Leaderboard = require("../models/Leaderboard");
 
 const isValidObjectId = (value) => mongoose.Types.ObjectId.isValid(value);
 
-const getQuizSubmissionDeadline = (quiz) => {
-  if (!quiz?.createdAt) return null;
-
-  const deadline = new Date(quiz.createdAt);
-  deadline.setUTCHours(23, 59, 59, 999);
-  return deadline;
-};
-
 const serializeQuiz = (quiz) => {
-  const submissionDeadline = getQuizSubmissionDeadline(quiz);
-  const now = new Date();
   const rawQuiz = quiz.toObject();
   const moduleId = rawQuiz.moduleId?._id || rawQuiz.moduleId;
 
@@ -26,8 +16,8 @@ const serializeQuiz = (quiz) => {
     moduleId: rawQuiz.moduleId,
     moduleRefId: moduleId?.toString?.() || moduleId,
     dayId: rawQuiz.dayId?.toString?.() || rawQuiz.dayId,
-    submissionDeadline,
-    isExpired: submissionDeadline ? now > submissionDeadline : false,
+    submissionDeadline: null,
+    isExpired: false,
   };
 };
 
@@ -163,15 +153,6 @@ exports.submitQuiz = async (req, res) => {
     }
 
     console.log(`>>> [QUIZ_FOUND] DayID: ${quiz.dayId}, ModuleID: ${quiz.moduleId}`);
-
-    const submissionDeadline = getQuizSubmissionDeadline(quiz);
-    if (submissionDeadline && new Date() > submissionDeadline) {
-      console.log(`>>> [EXPIRED] Deadline was ${submissionDeadline}`);
-      return res.status(403).json({
-        message: "[EXPIRED] This quiz has closed for the day.",
-        submissionDeadline,
-      });
-    }
 
     const submittedAnswers = Array.isArray(req.body.answers)
       ? req.body.answers
