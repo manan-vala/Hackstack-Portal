@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("dotenv").config({ path: __dirname + '/.env.mcp' });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -60,6 +61,7 @@ app.use("/admin", adminRoutes);
 app.use("/auth", authRoutes);
 app.use("/dashboard", dashboardRoutes);
 app.use("/notifications", notificationRoutes);
+app.use("/mcp", require("./routes/mcpRoutes"));
 
 // Mount EJS Whitelist routes
 const whitelistRoutes = require("./routes/whitelistRoutes");
