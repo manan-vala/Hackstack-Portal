@@ -74,7 +74,7 @@ const App = () => {
     <ThemeProvider>
       <AuthProvider>
         <AdminAuthProvider>
-          <Router basename="/hackstack">
+          <Router basename="/">
             <Routes>
               {/* ── User routes ─────────────────────────────────────────── */}
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
