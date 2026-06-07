@@ -1,4 +1,5 @@
 require("dotenv").config();
+require("dotenv").config({ path: __dirname + '/.env.mcp' });
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -50,15 +51,16 @@ app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
 // Mount API Routes
-app.use("/api/modules", moduleRoutes);
-app.use("/api/progress", progressRoutes);
-app.use("/api/quizzes", quizRoutes);
-app.use("/api/leaderboards", leaderboardRoutes);
-app.use("/api/users", userRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/notifications", notificationRoutes);
+app.use("/modules", moduleRoutes);
+app.use("/progress", progressRoutes);
+app.use("/quizzes", quizRoutes);
+app.use("/leaderboards", leaderboardRoutes);
+app.use("/users", userRoutes);
+app.use("/admin", adminRoutes);
+app.use("/auth", authRoutes);
+app.use("/dashboard", dashboardRoutes);
+app.use("/notifications", notificationRoutes);
+app.use("/mcp", require("./routes/mcpRoutes"));
 
 // Mount EJS Whitelist routes
 const whitelistRoutes = require("./routes/whitelistRoutes");
